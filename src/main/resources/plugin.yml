@@ -1,0 +1,11 @@
+name: ${project.artifactId}
+description: ${project.description}
+version: ${project.version}
+api-version: 1.16
+author: zPedroo_
+main: com.zpedroo.voltzspawners.VoltzSpawners
+depend: [WorldGuard, HolographicDisplays, Vault, ProtocolLib]
+load: POSTWORLD
+commands:
+  spawners:
+    aliases: [spawner, mobspawner, mobspawners]

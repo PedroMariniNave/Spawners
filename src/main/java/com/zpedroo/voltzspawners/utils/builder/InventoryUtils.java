@@ -49,7 +49,7 @@ public class InventoryUtils {
 
         actions.add(new Action(click, item, action));
 
-        getInventoryActions().put(inventory, actions);
+        inventoryActions.put(inventory, actions);
     }
 
     /**
@@ -61,7 +61,7 @@ public class InventoryUtils {
      * @return action based on specifications or null
      */
     public Action getAction(Inventory inventory, ItemStack item, ActionClick click) {
-        for (Action action : getInventoryActions().get(inventory)) {
+        for (Action action : getActions(inventory)) {
             if (action == null) continue;
 
             if (action.getClick() == click && action.getItem().equals(item)) return action;
@@ -137,7 +137,7 @@ public class InventoryUtils {
 
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onClick(InventoryClickEvent event) {
-            if (!InventoryUtils.getInstance().getInventoryActions().containsKey(event.getInventory())) return;
+            if (!hasAction(event.getInventory())) return;
 
             event.setCancelled(true);
 

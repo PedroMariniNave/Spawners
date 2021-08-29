@@ -4,6 +4,7 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
 import com.zpedroo.voltzspawners.VoltzSpawners;
+import com.zpedroo.voltzspawners.utils.EntityHider;
 import com.zpedroo.voltzspawners.utils.config.Settings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Item;

@@ -36,6 +36,8 @@ public class SpawnerListeners implements Listener {
         if (event.getItemInHand() == null || event.getItemInHand().getType().equals(Material.AIR)) return;
 
         final ItemStack item = event.getItemInHand().clone();
+        if (item == null || item.getType().equals(Material.AIR)) return;
+
         NBTItem nbt = new NBTItem(item);
         if (nbt.hasKey("SpawnersEnergy") || nbt.hasKey("SpawnersInfiniteEnergy") || nbt.hasKey("SpawnersRepair")) event.setCancelled(true);
         if (!nbt.hasKey("SpawnersAmount")) return;
@@ -100,7 +102,11 @@ public class SpawnerListeners implements Listener {
         }
 
         item.setAmount(1);
-        player.getInventory().removeItem(item);
+        if (player.getInventory().getItemInOffHand().isSimilar(item)) {
+            player.getInventory().setItemInOffHand(null);
+        } else {
+            player.getInventory().removeItem(item);
+        }
         if (overLimit.compareTo(BigInteger.ZERO) >= 1) player.getInventory().addItem(spawner.getItem(overLimit, integrity));
     }
 

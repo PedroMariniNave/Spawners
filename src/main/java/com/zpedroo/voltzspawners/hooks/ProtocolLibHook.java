@@ -7,11 +7,12 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.zpedroo.voltzspawners.VoltzSpawners;
-import com.zpedroo.voltzspawners.spawner.SpawnerHologram;
 import com.zpedroo.voltzspawners.managers.SpawnerManager;
 import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
+import com.zpedroo.voltzspawners.utils.EntityHider;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -25,12 +26,12 @@ public class ProtocolLibHook {
 
     private ProtocolManager protocolManager;
 
-    private HashMap<Player, List<SpawnerHologram>> holograms;
+    private HashMap<Player, List<PlayerSpawner>> spawnersHidden;
 
     public ProtocolLibHook() {
         instance = this;
         this.protocolManager = ProtocolLibrary.getProtocolManager();
-        this.holograms = new HashMap<>(512);
+        this.spawnersHidden = new HashMap<>(512);
         this.registerPackets();
     }
 
@@ -42,27 +43,33 @@ public class ProtocolLibHook {
 
                 Location location = block.getLocation();
 
-                PlayerSpawner machine = SpawnerManager.getInstance().getSpawner(location);
+                PlayerSpawner spawner = SpawnerManager.getInstance().getSpawner(location);
 
-                if (machine == null) {
-                    if (!holograms.containsKey(player)) return;
+                if (spawner == null) {
+                    if (!spawnersHidden.containsKey(player)) return;
 
-                    List<SpawnerHologram> holoList = holograms.remove(player);
+                    List<PlayerSpawner> spawners = spawnersHidden.remove(player);
 
-                    for (SpawnerHologram hologram : holoList) {
-                        hologram.hideTo(player);
+                    for (PlayerSpawner toHide : spawners) {
+                        toHide.getHologram().hideTo(player);
+
+                        for (Entity entity : toHide.getEntities()) {
+                            EntityHider.getInstance().showEntity(player, entity);
+                        }
                     }
                     return;
                 }
 
-                SpawnerHologram hologram = machine.getHologram();
+                for (Entity entity : spawner.getEntities()) {
+                    EntityHider.getInstance().hideEntity(player, entity);
+                }
 
-                hologram.showTo(player);
+                spawner.getHologram().showTo(player);
 
-                List<SpawnerHologram> holoList = holograms.containsKey(player) ? holograms.get(player) : new ArrayList<>();
-                holoList.add(hologram);
+                List<PlayerSpawner> holoList = spawnersHidden.containsKey(player) ? spawnersHidden.get(player) : new ArrayList<>();
+                holoList.add(spawner);
 
-                holograms.put(player, holoList);
+                spawnersHidden.put(player, holoList);
             }
         });
     }

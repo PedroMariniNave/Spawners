@@ -54,7 +54,7 @@ public class ProtocolLibHook {
                         toHide.getHologram().hideTo(player);
 
                         for (Entity entity : toHide.getEntities()) {
-                            EntityHider.getInstance().showEntity(player, entity);
+                            VoltzSpawners.get().getServer().getScheduler().runTaskLater(VoltzSpawners.get(), () -> EntityHider.getInstance().showEntity(player, entity), 0L);
                         }
                     }
                     return;

@@ -16,6 +16,8 @@ Settings:
   spawner-update: 200 # em ticks
   tax-remove-stack: 10 # em porcentagem
   next-update: 0
+  always-enabled-worlds:
+    - 'RankupWorld'
   hologram:
     - '&6&lMOBSPAWNER'
     - ''
@@ -30,13 +32,18 @@ Settings:
 Titles:
   when-kill:
     title: ''
-    subtitle: '&c&l{mobs} mobs &8| &a&l+{drops} drops'
+    subtitle: '&a&l+{drops} ✸'
+  when-sell:
+    title: ''
+    subtitle: '&e&l+{value} ⛃'
 
 Messages:
+  public: '&aPúblico'
+  private: '&cPrivado'
   enabled: '&aLigado'
   disabled: '&cDesligado'
-  true: '&aSim'
-  false: '&cNão'
+  'true': '&aSim'
+  'false': '&cNão'
   remove-stack-min: '&6&lVoltz&f&lMC &8&l➜ &cA quantia precisa ser acima de {tax}!'
   remove-stack-successful: '&6&lVoltz&f&lMC &8&l➜ &7Stacks removidos com sucesso! &f{lost} &7spawners foram destruídos nesse processo.'
   incorrect-pickaxe: '&6&lVoltz&f&lMC &8&l➜ &c{lost} spawners foram destruídos por não ter usado uma ferramenta ideal de remoção!'
@@ -113,6 +120,16 @@ Repair:
   lore:
     - '&7Use esse item para restaurar'
     - '&7a integridade de seus spawners!'
+
+Infinite-Repair:
+  type: PLAYER_HEAD
+  owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmM0MTlhNDRjNWI5NjdmNDczMTZkMWJlZDNjYzYzMmJkZWQxOTlhNWMzNDIxMTc5MWM3MGY5OThmZGJkNiJ9fX0=
+  name: '&6Reparador de Spawners ∞'
+  lore:
+    - '&7Use esse item para restaurar'
+    - '&7a integridade de seus spawners!'
+    - ''
+    - '&7Esse reparador é infinito!'
 
 Gift:
   type: PLAYER_HEAD

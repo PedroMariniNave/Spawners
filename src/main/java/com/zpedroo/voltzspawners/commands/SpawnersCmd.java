@@ -49,14 +49,12 @@ public class SpawnersCmd implements CommandExecutor {
                     }
 
                     amount = NumberFormatter.getInstance().filter(args[3]);
-
                     if (amount.signum() <= 0) {
                         sender.sendMessage(Messages.INVALID_AMOUNT);
                         return true;
                     }
 
                     target = Bukkit.getPlayer(args[1]);
-
                     if (target == null) {
                         sender.sendMessage(Messages.OFFLINE_PLAYER);
                         return true;
@@ -73,14 +71,12 @@ public class SpawnersCmd implements CommandExecutor {
                     }
 
                     amount = NumberFormatter.getInstance().filter(args[2]);
-
                     if (amount.signum() <= 0) {
                         sender.sendMessage(Messages.INVALID_AMOUNT);
                         return true;
                     }
 
                     target = Bukkit.getPlayer(args[1]);
-
                     if (target == null) {
                         sender.sendMessage(Messages.OFFLINE_PLAYER);
                         return true;
@@ -88,7 +84,7 @@ public class SpawnersCmd implements CommandExecutor {
 
                     target.getInventory().addItem(Items.getInstance().getEnergy(amount));
                     return true;
-                case "INFINITE":
+                case "INFINITE_ENERGY":
                     if (!sender.hasPermission("spawners.admin")) break;
 
                     if (args.length < 3) {
@@ -97,7 +93,6 @@ public class SpawnersCmd implements CommandExecutor {
                     }
 
                     amount = NumberFormatter.getInstance().filter(args[2]);
-
                     if (amount.signum() <= 0) {
                         sender.sendMessage(Messages.INVALID_AMOUNT);
                         return true;
@@ -106,7 +101,6 @@ public class SpawnersCmd implements CommandExecutor {
                     if (amount.compareTo(BigInteger.valueOf(2304)) > 0) amount = BigInteger.valueOf(2304);
 
                     target = Bukkit.getPlayer(args[1]);
-
                     if (target == null) {
                         sender.sendMessage(Messages.OFFLINE_PLAYER);
                         return true;
@@ -126,14 +120,12 @@ public class SpawnersCmd implements CommandExecutor {
                     }
 
                     amount = NumberFormatter.getInstance().filter(args[2]);
-
                     if (amount.signum() <= 0) {
                         sender.sendMessage(Messages.INVALID_AMOUNT);
                         return true;
                     }
 
                     target = Bukkit.getPlayer(args[1]);
-
                     if (target == null) {
                         sender.sendMessage(Messages.OFFLINE_PLAYER);
                         return true;
@@ -152,20 +144,45 @@ public class SpawnersCmd implements CommandExecutor {
                     }
 
                     BigInteger percentage = NumberFormatter.getInstance().filter(args[2]);
-
                     if (percentage.signum() <= 0) {
                         sender.sendMessage(Messages.INVALID_AMOUNT);
                         return true;
                     }
 
                     target = Bukkit.getPlayer(args[1]);
-
                     if (target == null) {
                         sender.sendMessage(Messages.OFFLINE_PLAYER);
                         return true;
                     }
 
                     target.getInventory().addItem(Items.getInstance().getRepair(percentage.intValue()));
+                    return true;
+                case "INFINITE_REPAIR":
+                    if (!sender.hasPermission("spawners.admin")) break;
+
+                    if (args.length < 3) {
+                        sender.sendMessage(Messages.SPAWNER_USAGE);
+                        return true;
+                    }
+
+                    amount = NumberFormatter.getInstance().filter(args[2]);
+                    if (amount.signum() <= 0) {
+                        sender.sendMessage(Messages.INVALID_AMOUNT);
+                        return true;
+                    }
+
+                    if (amount.compareTo(BigInteger.valueOf(2304)) > 0) amount = BigInteger.valueOf(2304);
+
+                    target = Bukkit.getPlayer(args[1]);
+                    if (target == null) {
+                        sender.sendMessage(Messages.OFFLINE_PLAYER);
+                        return true;
+                    }
+
+                    item = Items.getInstance().getInfiniteRepair();
+                    item.setAmount(amount.intValue());
+
+                    target.getInventory().addItem(item);
                     return true;
                 case "GIFT":
                     if (!sender.hasPermission("spawners.admin")) break;
@@ -176,7 +193,6 @@ public class SpawnersCmd implements CommandExecutor {
                     }
 
                     target = Bukkit.getPlayer(args[1]);
-
                     if (target == null) {
                         sender.sendMessage(Messages.OFFLINE_PLAYER);
                         return true;

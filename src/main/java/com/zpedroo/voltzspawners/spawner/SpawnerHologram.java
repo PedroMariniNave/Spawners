@@ -4,7 +4,6 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
 import com.zpedroo.voltzspawners.VoltzSpawners;
-import com.zpedroo.voltzspawners.utils.EntityHider;
 import com.zpedroo.voltzspawners.utils.config.Settings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Item;
@@ -19,9 +18,9 @@ public class SpawnerHologram {
 
     private Hologram hologram;
 
-    public SpawnerHologram(PlayerSpawner machine) {
-        this.hologramLines = Settings.MACHINE_HOLOGRAM;
-        Bukkit.getScheduler().runTaskLater(VoltzSpawners.get(), () -> update(machine), 0L);
+    public SpawnerHologram(PlayerSpawner spawner) {
+        this.hologramLines = Settings.SPAWNER_HOLOGRAM;
+        Bukkit.getScheduler().runTaskLater(VoltzSpawners.get(), () -> update(spawner), 0L);
     }
 
     public void update(PlayerSpawner spawner) {

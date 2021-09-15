@@ -33,13 +33,11 @@ public class SpawnerListeners implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (event.getItemInHand() == null || event.getItemInHand().getType().equals(Material.AIR)) return;
-
         final ItemStack item = event.getItemInHand().clone();
-        if (item == null || item.getType().equals(Material.AIR)) return;
+        if (item.getType().equals(Material.AIR)) return;
 
         NBTItem nbt = new NBTItem(item);
-        if (nbt.hasKey("SpawnersEnergy") || nbt.hasKey("SpawnersInfiniteEnergy") || nbt.hasKey("SpawnersRepair")) event.setCancelled(true);
+        if (nbt.hasKey("SpawnersEnergy") || nbt.hasKey("SpawnersInfiniteEnergy") || nbt.hasKey("SpawnersInfiniteRepair") || nbt.hasKey("SpawnersRepair")) event.setCancelled(true);
         if (!nbt.hasKey("SpawnersAmount")) return;
 
         event.setCancelled(true);
@@ -96,7 +94,7 @@ public class SpawnerListeners implements Listener {
                 overLimit = stack.subtract(spawner.getMaxStack());
             } else overLimit = BigInteger.ZERO;
 
-            playerSpawner = new PlayerSpawner(block.getLocation(), player.getUniqueId(), stack.subtract(overLimit), BigInteger.ZERO, BigInteger.ZERO, integrity, spawner, new ArrayList<>(), false);
+            playerSpawner = new PlayerSpawner(block.getLocation(), player.getUniqueId(), stack.subtract(overLimit), BigInteger.ZERO, BigInteger.ZERO, integrity, spawner, new ArrayList<>(), false, false, false);
             playerSpawner.cache();
             playerSpawner.setQueueUpdate(true);
         }
@@ -132,18 +130,29 @@ public class SpawnerListeners implements Listener {
 
         if (item.getType() != Material.AIR) {
             NBTItem nbt = new NBTItem(item);
-
             if (nbt.hasKey("SpawnersInfiniteEnergy")) {
-                if (spawner.isInfinite()) return;
+                if (spawner.hasInfiniteEnergy()) return;
 
-                spawner.setInfinite(true);
+                spawner.setInfiniteEnergy(true);
                 item.setAmount(1);
                 player.playSound(player.getLocation(), Sound.BLOCK_FIRE_AMBIENT, 10f, 10f);
                 player.getInventory().removeItem(item);
                 return;
             }
 
+            if (nbt.hasKey("SpawnersInfiniteRepair")) {
+                if (spawner.hasInfiniteIntegrity()) return;
+
+                spawner.setInfiniteIntegrity(true);
+                item.setAmount(1);
+                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 0.5f);
+                player.getInventory().removeItem(item);
+                return;
+            }
+
             if (nbt.hasKey("SpawnersEnergy")) {
+                if (spawner.hasInfiniteEnergy()) return;
+                
                 BigInteger amount = new BigInteger(nbt.getString("SpawnersEnergy"));
 
                 spawner.addEnergy(amount);
@@ -154,11 +163,10 @@ public class SpawnerListeners implements Listener {
             }
 
             if (nbt.hasKey("SpawnersRepair")) {
+                if (spawner.getIntegrity() >= 100 || spawner.hasInfiniteIntegrity()) return;
+
                 Integer percentage = nbt.getInteger("SpawnersRepair");
-
                 Integer overLimit = 0;
-
-                if (spawner.getIntegrity() >= 100) return;
 
                 if (spawner.getIntegrity() + percentage > 100) {
                     overLimit = percentage - (100 - spawner.getIntegrity());
@@ -207,8 +215,6 @@ public class SpawnerListeners implements Listener {
             toGive = spawner.getStack().subtract(spawner.getStack().multiply(BigInteger.valueOf(Settings.TAX_REMOVE_STACK)).divide(BigInteger.valueOf(100)));
         }
 
-        spawner.delete();
-        player.getInventory().addItem(spawner.getSpawner().getItem(toGive, spawner.getIntegrity()));
         if (toGive.compareTo(spawner.getStack()) < 0) {
             player.sendMessage(StringUtils.replaceEach(Messages.INCORRECT_PICKAXE, new String[]{
                     "{lost}"
@@ -217,9 +223,18 @@ public class SpawnerListeners implements Listener {
             }));
         }
 
-        if (spawner.isInfinite()) {
+        if (spawner.hasInfiniteEnergy()) {
             player.getInventory().addItem(Items.getInstance().getInfiniteEnergy());
         }
+
+        if (spawner.hasInfiniteIntegrity()) {
+            player.getInventory().addItem(Items.getInstance().getInfiniteRepair());
+        }
+
+        if (spawner.getDrops().signum() > 0) spawner.sellDrops(player);
+
+        spawner.delete();
+        player.getInventory().addItem(spawner.getSpawner().getItem(toGive, spawner.getIntegrity()));
 
         if (spawner.getEnergy().signum() <= 0) return;
 

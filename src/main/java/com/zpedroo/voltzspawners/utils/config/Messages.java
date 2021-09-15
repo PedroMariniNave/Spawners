@@ -36,6 +36,10 @@ public class Messages {
 
     public static final String NEAR_SPAWNER = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.near-spawner"));
 
+    public static final String PUBLIC = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.public"));
+
+    public static final String PRIVATE = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.private"));
+
     public static final String ENABLED = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.enabled"));
 
     public static final String DISABLED = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.disabled"));

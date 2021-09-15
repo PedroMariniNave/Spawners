@@ -74,6 +74,9 @@ public class EntityManager {
             case COW:
                 ((Cow) entity).setBaby();
                 break;
+            case PIG:
+                ((Pig) entity).setBaby();
+                break;
             case MUSHROOM_COW:
                 ((MushroomCow) entity).setBaby();
                 break;

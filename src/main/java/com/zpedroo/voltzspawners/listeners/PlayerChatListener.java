@@ -1,6 +1,5 @@
 package com.zpedroo.voltzspawners.listeners;
 
-import br.com.devpaulo.legendchat.api.events.ChatMessageEvent;
 import com.zpedroo.voltzspawners.hooks.VaultHook;
 import com.zpedroo.voltzspawners.spawner.Spawner;
 import com.zpedroo.voltzspawners.objects.Manager;
@@ -17,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -34,12 +34,12 @@ public class PlayerChatListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onChat(ChatMessageEvent event) {
-        if (!getPlayerChat().containsKey(event.getSender())) return;
+    public void onChat(AsyncPlayerChatEvent event) {
+        if (!playerChat.containsKey(event.getPlayer())) return;
 
         event.setCancelled(true);
 
-        PlayerChat playerChat = getPlayerChat().remove(event.getSender());
+        PlayerChat playerChat = getPlayerChat().remove(event.getPlayer());
         Player player = playerChat.getPlayer();
         String msg = event.getMessage();
         Action action = playerChat.getAction();

@@ -23,7 +23,9 @@ public class Settings {
 
     public static final Long SAVE_INTERVAL = FileUtils.get().getLong(FileUtils.Files.CONFIG, "Settings.save-interval");
 
-    public static final String[] MACHINE_HOLOGRAM = getColored(FileUtils.get().getStringList(FileUtils.Files.CONFIG, "Settings.hologram")).toArray(new String[256]);
+    public static final String[] SPAWNER_HOLOGRAM = getColored(FileUtils.get().getStringList(FileUtils.Files.CONFIG, "Settings.hologram")).toArray(new String[256]);
+
+    public static final List<String> ALWAYS_ENABLED_WORLDS = FileUtils.get().getStringList(FileUtils.Files.CONFIG, "Settings.always-enabled-worlds");
 
     public static Long NEXT_UPDATE = FileUtils.get().getLong(FileUtils.Files.CONFIG, "Settings.next-update"); // not final
 

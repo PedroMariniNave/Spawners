@@ -4,6 +4,7 @@ import com.zpedroo.voltzspawners.VoltzSpawners;
 import com.zpedroo.voltzspawners.managers.SpawnerManager;
 import com.zpedroo.voltzspawners.objects.Manager;
 import com.zpedroo.voltzspawners.utils.config.Messages;
+import com.zpedroo.voltzspawners.utils.config.Titles;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
@@ -28,14 +29,16 @@ public class PlayerSpawner {
     private Integer integrity;
     private Spawner spawner;
     private List<Manager> managers;
-    private Boolean infinite;
+    private Boolean infiniteEnergy;
+    private Boolean infiniteIntegrity;
+    private Boolean publicSpawner;
     private Boolean status;
     private Boolean update;
     private Integer delay;
     private SpawnerHologram hologram;
     private Set<Entity> entities;
 
-    public PlayerSpawner(Location location, UUID ownerUUID, BigInteger stack, BigInteger energy, BigInteger drops, Integer integrity, Spawner spawner, List<Manager> managers, Boolean infinite) {
+    public PlayerSpawner(Location location, UUID ownerUUID, BigInteger stack, BigInteger energy, BigInteger drops, Integer integrity, Spawner spawner, List<Manager> managers, Boolean infiniteEnergy, Boolean infiniteIntegrity, Boolean publicSpawner) {
         this.location = location;
         this.ownerUUID = ownerUUID;
         this.stack = stack;
@@ -44,7 +47,9 @@ public class PlayerSpawner {
         this.integrity = integrity;
         this.spawner = spawner;
         this.managers = managers;
-        this.infinite = infinite;
+        this.infiniteEnergy = infiniteEnergy;
+        this.infiniteIntegrity = infiniteIntegrity;
+        this.publicSpawner = publicSpawner;
         this.status = false;
         this.update = false;
         this.delay = spawner.getDelay();
@@ -84,12 +89,20 @@ public class PlayerSpawner {
         return managers;
     }
 
-    public Boolean isInfinite() {
-        return infinite;
+    public Boolean hasInfiniteEnergy() {
+        return infiniteEnergy;
+    }
+
+    public Boolean hasInfiniteIntegrity() {
+        return infiniteIntegrity;
+    }
+
+    public Boolean isPublic() {
+        return publicSpawner;
     }
 
     public Manager getManager(UUID uuid) {
-        for (Manager manager : getManagers()) {
+        for (Manager manager : managers) {
             if (!manager.getUUID().equals(uuid)) continue;
 
             return manager;
@@ -138,10 +151,21 @@ public class PlayerSpawner {
         this.location.getBlock().setType(Material.AIR);
     }
 
-    public void setInfinite(Boolean infinite) {
-        this.infinite = infinite;
+    public void setInfiniteEnergy(Boolean infiniteEnergy) {
+        this.infiniteEnergy = infiniteEnergy;
         this.update = true;
         this.hologram.update(this);
+    }
+
+    public void setInfiniteIntegrity(Boolean infiniteIntegrity) {
+        this.infiniteIntegrity = infiniteIntegrity;
+        this.update = true;
+        this.hologram.update(this);
+    }
+
+    public void setPublic(Boolean publicSpawner) {
+        this.publicSpawner = publicSpawner;
+        this.update = true;
     }
 
     public String replace(String text) {
@@ -161,9 +185,9 @@ public class PlayerSpawner {
                 spawner.getTypeTranslated(),
                 NumberFormatter.getInstance().format(stack),
                 NumberFormatter.getInstance().format(spawner.getMaxStack()),
-                infinite ? "∞" : NumberFormatter.getInstance().format(energy),
+                infiniteEnergy ? "∞" : NumberFormatter.getInstance().format(energy),
                 NumberFormatter.getInstance().format(drops),
-                integrity.toString() + "%",
+                infiniteIntegrity ? "∞" : integrity.toString() + "%",
                 status ? Messages.ENABLED : Messages.DISABLED
         });
     }
@@ -213,7 +237,7 @@ public class PlayerSpawner {
     public void removeStack(BigInteger value) {
         this.stack = stack.subtract(value);
         this.update = true;
-        if (getStack().signum() <= 0) {
+        if (stack.signum() <= 0) {
             VoltzSpawners.get().getServer().getScheduler().runTaskLater(VoltzSpawners.get(), this::delete, 0L); // fix async block remove
             return;
         }
@@ -252,7 +276,7 @@ public class PlayerSpawner {
     public void sellDrops(Player player) {
         if (drops.signum() <= 0) return;
 
-        for (String cmd : getSpawner().getCommands()) {
+        for (String cmd : spawner.getCommands()) {
             if (cmd == null) break;
 
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), StringUtils.replaceEach(cmd, new String[]{
@@ -260,26 +284,32 @@ public class PlayerSpawner {
                     "{amount}"
             }, new String[]{
                     player.getName(),
-                    getDrops().toString()
+                    drops.toString()
             }));
         }
+
+        player.sendTitle(Titles.WHEN_SELL_TITLE, StringUtils.replaceEach(Titles.WHEN_SELL_SUBTITLE, new String[]{
+                "{value}"
+        }, new String[]{
+                NumberFormatter.getInstance().format(drops)
+        }));
 
         this.drops = BigInteger.ZERO;
         this.hologram.update(this);
     }
 
     public void addEntity(Entity entity) {
-        getEntities().add(entity);
+        entities.add(entity);
     }
 
     public void removeEntities() {
-        for (Entity entity : getEntities()) {
+        for (Entity entity : entities) {
             if (entity == null) continue;
 
             entity.remove();
         }
 
-        getEntities().clear();
+        entities.clear();
     }
 
     public void cache() {

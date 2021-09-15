@@ -100,9 +100,10 @@ public class SpawnerManager {
     public void updatePrices(Boolean forced) {
         for (Spawner spawner : getDataCache().getSpawners().values()) {
             File folder = new File(VoltzSpawners.get().getDataFolder(), "/spawners");
-            File[] files = folder.listFiles((d, name) -> name.equals(spawner.getType() + ".yml"));
+            File[] files = folder.listFiles((file, name) -> name.equals(spawner.getType() + ".yml"));
 
             if (files == null) return;
+            if (files.length <= 0) return;
 
             YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(files[0]);
             BigInteger newValue = new BigInteger(String.format("%.0f", ThreadLocalRandom.current().nextDouble(MIN_PRICE.doubleValue(), MAX_PRICE.doubleValue())));

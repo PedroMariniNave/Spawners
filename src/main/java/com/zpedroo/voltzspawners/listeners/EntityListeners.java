@@ -7,16 +7,15 @@ import com.zpedroo.voltzspawners.utils.config.Settings;
 import com.zpedroo.voltzspawners.utils.config.Titles;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.math.BigInteger;
@@ -37,7 +36,7 @@ public class EntityListeners implements Listener {
         String serialized = entity.getMetadata("Spawner").get(0).asString();
         PlayerSpawner spawner = SpawnerManager.getInstance().getSpawner(SpawnerManager.getInstance().deserializeLocation(serialized));
         if (spawner == null) return;
-        if (!spawner.canInteract(player)) {
+        if (!spawner.canInteract(player) && !spawner.isPublic()) {
             event.setCancelled(true);
             return;
         }
@@ -50,6 +49,13 @@ public class EntityListeners implements Listener {
         BigInteger drops = setLooting(spawner.getSpawner().getAmount().multiply(stack), getLootingBonuses(player.getItemInHand()));
 
         spawner.addDrops(drops);
+
+        EntityManager.removeStack(entity, stack, spawner);
+
+        if (spawner.isPublic()) {
+            spawner.sellDrops(player);
+            return;
+        }
 
         player.sendTitle(StringUtils.replaceEach(Titles.WHEN_KILL_TITLE, new String[]{
                 "{mobs}",
@@ -64,8 +70,6 @@ public class EntityListeners implements Listener {
                 NumberFormatter.getInstance().format(stack),
                 NumberFormatter.getInstance().format(drops)
         }));
-
-        EntityManager.removeStack(entity, stack, spawner);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -73,6 +77,7 @@ public class EntityListeners implements Listener {
         if (!event.getEntity().hasMetadata("MobAmount")) return;
 
         event.getDrops().clear();
+        event.getEntity().remove();
     }
 
     private Integer getLootingBonuses(ItemStack item) {

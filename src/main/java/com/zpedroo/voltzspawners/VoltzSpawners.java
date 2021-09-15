@@ -72,9 +72,7 @@ public class VoltzSpawners extends JavaPlugin {
 
         for (World world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {
-                if (!entity.hasMetadata("MobAmount") && entity.getType() != EntityType.DROPPED_ITEM) continue;
-
-                entity.remove();
+                if (entity.hasMetadata("MobAmount") || entity.getType().equals(EntityType.DROPPED_ITEM)) entity.remove();
             }
 
             world.save();

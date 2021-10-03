@@ -1,53 +1,48 @@
 package com.zpedroo.voltzspawners.mysql;
 
-import com.zpedroo.voltzspawners.managers.SpawnerManager;
-import com.zpedroo.voltzspawners.spawner.Spawner;
+import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.objects.Manager;
-import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.Spawner;
 import org.bukkit.Location;
 
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-public class DBManager {
-
-    private SpawnerManager manager;
-
-    public DBManager() {
-        this.manager = new SpawnerManager();
-    }
+public class DBManager extends DataManager {
 
     public void saveSpawner(PlayerSpawner spawner) {
-        if (contains(getManager().serializeLocation(spawner.getLocation()), "location")) {
+        if (contains(DataManager.getInstance().serializeLocation(spawner.getLocation()), "location")) {
             String query = "UPDATE `" + DBConnection.TABLE + "` SET" +
-                    "`location`='" + getManager().serializeLocation(spawner.getLocation()) + "', " +
+                    "`location`='" + DataManager.getInstance().serializeLocation(spawner.getLocation()) + "', " +
                     "`uuid`='" + spawner.getOwnerUUID().toString() + "', " +
                     "`stack`='" + spawner.getStack().toString() + "', " +
                     "`energy`='" + spawner.getEnergy().toString() + "', " +
                     "`drops`='" + spawner.getDrops().toString() + "', " +
                     "`integrity`='" + spawner.getIntegrity().toString() + "', " +
                     "`type`='" + spawner.getSpawner().getType() + "', " +
-                    "`managers`='" + getManager().serializeManagers(spawner.getManagers()) + "', " +
+                    "`managers`='" + DataManager.getInstance().serializeManagers(spawner.getManagers()) + "', " +
                     "`infinite_energy`='" + (spawner.hasInfiniteEnergy() ? 1 : 0) + "', " +
                     "`infinite_integrity`='" + (spawner.hasInfiniteIntegrity() ? 1 : 0) + "', " +
                     "`public`='" + (spawner.isPublic() ? 1 : 0) + "' " +
-                    "WHERE `location`='" + getManager().serializeLocation(spawner.getLocation()) + "';";
+                    "WHERE `location`='" + DataManager.getInstance().serializeLocation(spawner.getLocation()) + "';";
             executeUpdate(query);
             return;
         }
 
         String query = "INSERT INTO `" + DBConnection.TABLE + "` (`location`, `uuid`, `stack`, `energy`, `drops`, `integrity`, `type`, `managers`, `infinite_energy`, `infinite_integrity`, `public`) VALUES " +
-                "('" + getManager().serializeLocation(spawner.getLocation()) + "', " +
+                "('" + DataManager.getInstance().serializeLocation(spawner.getLocation()) + "', " +
                 "'" + spawner.getOwnerUUID().toString() + "', " +
                 "'" + spawner.getStack().toString() + "', " +
                 "'" + spawner.getEnergy().toString() + "', " +
                 "'" + spawner.getDrops().toString() + "', " +
                 "'" + spawner.getIntegrity().toString() + "', " +
                 "'" + spawner.getSpawner().getType() + "', " +
-                "'" + getManager().serializeManagers(spawner.getManagers()) + "', " +
+                "'" + DataManager.getInstance().serializeManagers(spawner.getManagers()) + "', " +
                 "'" + (spawner.hasInfiniteEnergy() ? 1 : 0) + "', " +
                 "'" + (spawner.hasInfiniteIntegrity() ? 1 : 0) + "', " +
                 "'" + (spawner.isPublic() ? 1 : 0) + "');";
@@ -59,8 +54,8 @@ public class DBManager {
         executeUpdate(query);
     }
 
-    public HashMap<Location, PlayerSpawner> getPlacedSpawners() {
-        HashMap<Location, PlayerSpawner> spawners = new HashMap<>(5120);
+    public Map<Location, PlayerSpawner> getPlacedSpawners() {
+        Map<Location, PlayerSpawner> spawners = new HashMap<>(5120);
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -73,14 +68,14 @@ public class DBManager {
             result = preparedStatement.executeQuery();
 
             while (result.next()) {
-                Location location = getManager().deserializeLocation(result.getString(1));
+                Location location = DataManager.getInstance().deserializeLocation(result.getString(1));
                 UUID ownerUUID = UUID.fromString(result.getString(2));
                 BigDecimal stack = result.getBigDecimal(3);
                 BigDecimal energy = result.getBigDecimal(4);
                 BigDecimal drops = result.getBigDecimal(5);
                 Integer integrity = result.getInt(6);
-                Spawner spawner = getManager().getSpawner(result.getString(7));
-                List<Manager> managers = getManager().deserializeManagers(result.getString(8));
+                Spawner spawner = DataManager.getInstance().getSpawner(result.getString(7));
+                List<Manager> managers = DataManager.getInstance().deserializeManagers(result.getString(8));
                 Boolean infiniteEnergy = result.getBoolean(9);
                 Boolean infiniteIntegrity = result.getBoolean(10);
                 Boolean publicSpawner = result.getBoolean(11);
@@ -88,15 +83,15 @@ public class DBManager {
 
                 spawners.put(location, playerSpawner);
 
-                List<PlayerSpawner> spawnersList = getManager().getDataCache().getPlayerSpawnersByUUID(ownerUUID);
+                List<PlayerSpawner> spawnersList = DataManager.getInstance().getCache().getPlayerSpawnersByUUID(ownerUUID);
                 spawnersList.add(playerSpawner);
 
-                getManager().getDataCache().setUUIDSpawners(ownerUUID, spawnersList);
+                DataManager.getInstance().getCache().setUUIDSpawners(ownerUUID, spawnersList);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            closeConnection(connection, result, preparedStatement, null);
+            closeConnections(connection, result, preparedStatement, null);
         }
 
         return spawners;
@@ -115,7 +110,7 @@ public class DBManager {
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
-            closeConnection(connection, result, preparedStatement, null);
+            closeConnections(connection, result, preparedStatement, null);
         }
 
         return false;
@@ -131,11 +126,11 @@ public class DBManager {
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
-            closeConnection(connection, null, null, statement);
+            closeConnections(connection, null, null, statement);
         }
     }
 
-    private void closeConnection(Connection connection, ResultSet resultSet, PreparedStatement preparedStatement, Statement statement) {
+    private void closeConnections(Connection connection, ResultSet resultSet, PreparedStatement preparedStatement, Statement statement) {
         try {
             if (connection != null) connection.close();
             if (resultSet != null) resultSet.close();
@@ -153,9 +148,5 @@ public class DBManager {
 
     private Connection getConnection() throws SQLException {
         return DBConnection.getInstance().getConnection();
-    }
-
-    private SpawnerManager getManager() {
-        return manager;
     }
 }

@@ -21,6 +21,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.comphenix.protocol.PacketType.Play.Server.*;
@@ -236,7 +237,7 @@ public class EntityHider implements Listener {
 
         // Resend packets
         if (manager != null && hiddenBefore) {
-            manager.updateEntity(entity, Arrays.asList(observer));
+            manager.updateEntity(entity, Collections.singletonList(observer));
         }
         return hiddenBefore;
     }

@@ -1,8 +1,8 @@
 package com.zpedroo.voltzspawners.listeners;
 
+import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.managers.EntityManager;
-import com.zpedroo.voltzspawners.managers.SpawnerManager;
-import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.PlayerSpawner;
 import com.zpedroo.voltzspawners.utils.config.Settings;
 import com.zpedroo.voltzspawners.utils.config.Titles;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
@@ -15,7 +15,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.math.BigInteger;
@@ -34,7 +33,7 @@ public class EntityListeners implements Listener {
         if (!entity.hasMetadata("MobAmount")) return;
 
         String serialized = entity.getMetadata("Spawner").get(0).asString();
-        PlayerSpawner spawner = SpawnerManager.getInstance().getSpawner(SpawnerManager.getInstance().deserializeLocation(serialized));
+        PlayerSpawner spawner = DataManager.getInstance().getSpawner(DataManager.getInstance().deserializeLocation(serialized));
         if (spawner == null) return;
         if (!spawner.canInteract(player) && !spawner.isPublic()) {
             event.setCancelled(true);

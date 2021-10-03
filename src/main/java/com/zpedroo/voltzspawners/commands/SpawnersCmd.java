@@ -1,6 +1,7 @@
 package com.zpedroo.voltzspawners.commands;
 
-import com.zpedroo.voltzspawners.spawner.Spawner;
+import com.zpedroo.voltzspawners.managers.DataManager;
+import com.zpedroo.voltzspawners.objects.Spawner;
 import com.zpedroo.voltzspawners.managers.SpawnerManager;
 import com.zpedroo.voltzspawners.utils.config.Messages;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
@@ -25,9 +26,7 @@ public class SpawnersCmd implements CommandExecutor {
         BigInteger amount = null;
 
         if (args.length > 0) {
-            String arg = args[0].toUpperCase();
-
-            switch (arg) {
+            switch (args[0].toUpperCase()) {
                 case "TOP":
                     if (player == null) return true;
 
@@ -41,7 +40,7 @@ public class SpawnersCmd implements CommandExecutor {
                         return true;
                     }
 
-                    Spawner spawner = SpawnerManager.getInstance().getSpawner(args[2]);
+                    Spawner spawner = DataManager.getInstance().getSpawner(args[2]);
 
                     if (spawner == null) {
                         sender.sendMessage(Messages.INVALID_SPAWNER);

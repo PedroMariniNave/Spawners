@@ -1,14 +1,14 @@
 package com.zpedroo.voltzspawners.utils.menu;
 
-import com.zpedroo.voltzspawners.FileUtils;
 import com.zpedroo.voltzspawners.VoltzSpawners;
 import com.zpedroo.voltzspawners.listeners.PlayerChatListener;
 import com.zpedroo.voltzspawners.listeners.PlayerGeneralListeners;
-import com.zpedroo.voltzspawners.managers.SpawnerManager;
+import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.objects.Manager;
 import com.zpedroo.voltzspawners.objects.PlayerChat;
-import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
-import com.zpedroo.voltzspawners.spawner.Spawner;
+import com.zpedroo.voltzspawners.objects.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.Spawner;
+import com.zpedroo.voltzspawners.utils.FileUtils;
 import com.zpedroo.voltzspawners.utils.builder.InventoryBuilder;
 import com.zpedroo.voltzspawners.utils.builder.InventoryUtils;
 import com.zpedroo.voltzspawners.utils.builder.ItemBuilder;
@@ -68,17 +68,17 @@ public class Menus {
             String action = FileUtils.get().getString(file, "Inventory.items." + items + ".action");
 
             switch (action.toUpperCase()) {
-                case "OPEN_SPAWNERS" -> inventoryUtils.addAction(inventory, slot, () -> {
-                    openPlayerSpawnersMenu(player, SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(player.getUniqueId()));
+                case "SPAWNERS" -> inventoryUtils.addAction(inventory, item, () -> {
+                    openPlayerSpawnersMenu(player, DataManager.getInstance().getCache().getPlayerSpawnersByUUID(player.getUniqueId()));
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
                 }, InventoryUtils.ActionType.ALL_CLICKS);
 
-                case "OPEN_SHOP" -> inventoryUtils.addAction(inventory, slot, () -> {
+                case "SHOP" -> inventoryUtils.addAction(inventory, item, () -> {
                     openShopMenu(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
                 }, InventoryUtils.ActionType.ALL_CLICKS);
 
-                case "OPEN_TOP" -> inventoryUtils.addAction(inventory, slot, () -> {
+                case "TOP" -> inventoryUtils.addAction(inventory, item, () -> {
                     openTopSpawnersMenu(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
                 }, InventoryUtils.ActionType.ALL_CLICKS);
@@ -132,7 +132,7 @@ public class Menus {
             String action = file.getString("Spawner-Menu.items." + items + ".action", "NULL");
 
             switch (action.toUpperCase()) {
-                case "SWITCH_STATUS" -> inventoryUtils.addAction(inventory, slot, () -> {
+                case "SWITCH_STATUS" -> inventoryUtils.addAction(inventory, item, () -> {
                     if (!spawner.hasInfiniteEnergy() && spawner.getEnergy().signum() <= 0) {
                         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.5f, 0.5f);
                         return;
@@ -148,7 +148,7 @@ public class Menus {
                     player.playSound(player.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 0.5f, 100f);
                 }, InventoryUtils.ActionType.ALL_CLICKS);
 
-                case "SELL_DROPS" -> inventoryUtils.addAction(inventory, slot, () -> {
+                case "SELL_DROPS" -> inventoryUtils.addAction(inventory, item, () -> {
                     if (!player.getUniqueId().equals(spawner.getOwnerUUID()) && (manager != null && !manager.can(Permission.SELL_DROPS))) {
                         player.sendMessage(NEED_PERMISSION);
                         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.5f, 0.5f);
@@ -165,12 +165,12 @@ public class Menus {
                     player.playSound(player.getLocation(), Sound.ENTITY_HORSE_ARMOR, 0.5f, 0.5f);
                 }, InventoryUtils.ActionType.ALL_CLICKS);
 
-                case "MANAGERS" -> inventoryUtils.addAction(inventory, slot, () -> {
+                case "MANAGERS" -> inventoryUtils.addAction(inventory, item, () -> {
                     openManagersMenu(player, spawner);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
                 }, InventoryUtils.ActionType.ALL_CLICKS);
 
-                case "REMOVE_STACK" -> inventoryUtils.addAction(inventory, slot, () -> {
+                case "REMOVE_STACK" -> inventoryUtils.addAction(inventory, item, () -> {
                     if (!player.getUniqueId().equals(spawner.getOwnerUUID()) && (manager != null && !manager.can(Permission.REMOVE_STACK))) {
                         player.sendMessage(NEED_PERMISSION);
                         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.5f, 0.5f);
@@ -190,7 +190,7 @@ public class Menus {
                     }
                 }, InventoryUtils.ActionType.ALL_CLICKS);
 
-                case "SWITCH_PRIVACY" -> inventoryUtils.addAction(inventory, slot, () -> {
+                case "SWITCH_PRIVACY" -> inventoryUtils.addAction(inventory, item, () -> {
                     if (!player.getUniqueId().equals(spawner.getOwnerUUID())) {
                         player.sendMessage(ONLY_OWNER);
                         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.5f, 0.5f);
@@ -207,107 +207,6 @@ public class Menus {
         }
 
         player.openInventory(inventory);
-    }
-
-    public void openTopSpawnersMenu(Player player) {
-        FileUtils.Files file = FileUtils.Files.TOP_SPAWNERS;
-
-        String title = ChatColor.translateAlternateColorCodes('&', FileUtils.get().getString(file, "Inventory.title"));
-        int size = FileUtils.get().getInt(file, "Inventory.size");
-
-        Inventory inventory = Bukkit.createInventory(null, size, title);
-
-        int pos = 0;
-        String[] topSlots = FileUtils.get().getString(file, "Inventory.slots").replace(" ", "").split(",");
-
-        for (Map.Entry<UUID, BigInteger> entry : SpawnerManager.getInstance().getDataCache().getTopSpawners().entrySet()) {
-            UUID uuid = entry.getKey();
-            BigInteger stack = entry.getValue();
-
-            ItemStack item = ItemBuilder.build(FileUtils.get().getFile(file).get(), "Item", new String[]{
-                    "{player}",
-                    "{spawners}",
-                    "{pos}"
-            }, new String[]{
-                    Bukkit.getOfflinePlayer(uuid).getName(),
-                    NumberFormatter.getInstance().format(stack),
-                    String.valueOf(++pos)
-            }).build();
-
-            int slot = Integer.parseInt(topSlots[pos]);
-
-            inventoryUtils.addAction(inventory, slot, () -> {
-                openOtherSpawnersMenu(player, uuid);
-            }, InventoryUtils.ActionType.ALL_CLICKS);
-
-            inventory.setItem(slot, item);
-        }
-
-        player.openInventory(inventory);
-    }
-
-    public void openOtherSpawnersMenu(Player player, UUID targetUUID) {
-        FileUtils.Files file = FileUtils.Files.OTHER_SPAWNERS;
-        List<PlayerSpawner> spawners = SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(targetUUID);
-
-        String title = ChatColor.translateAlternateColorCodes('&', StringUtils.replaceEach(FileUtils.get().getString(file, "Inventory.title"), new String[]{
-                "{target}"
-        }, new String[]{
-                Bukkit.getOfflinePlayer(targetUUID).getName()
-        }));
-        int size = FileUtils.get().getInt(file, "Inventory.size");
-
-        Inventory inventory = Bukkit.createInventory(null, size, title);
-        List<ItemBuilder> builders = new ArrayList<>(spawners.size());
-
-        if (spawners.size() <= 0) {
-            ItemStack item = ItemBuilder.build(FileUtils.get().getFile(file).get(), "Nothing").build();
-            int slot = FileUtils.get().getInt(file, "Nothing.slot");
-
-            inventory.setItem(slot, item);
-        } else {
-            String[] slots = FileUtils.get().getString(file, "Inventory.slots").replace(" ", "").split(",");
-            int i = -1;
-
-            for (PlayerSpawner spawner : spawners) {
-                if (++i >= slots.length) i = 0;
-
-                ItemStack item = spawner.getSpawner().getDisplayItem();
-                int slot = Integer.parseInt(slots[i]);
-                ItemMeta meta = item.getItemMeta();
-                List<String> lore = new ArrayList<>(8);
-                List<InventoryUtils.Action> actions = new ArrayList<>(1);
-
-                for (String toAdd : FileUtils.get().getStringList(file, "Item-Lore")) {
-                    lore.add(ChatColor.translateAlternateColorCodes('&', StringUtils.replaceEach(toAdd, new String[]{
-                            "{stack}",
-                            "{drops}",
-                            "{energy}",
-                            "{integrity}",
-                            "{status}"
-                    }, new String[]{
-                            NumberFormatter.getInstance().format(spawner.getStack()),
-                            NumberFormatter.getInstance().format(spawner.getDrops()),
-                            spawner.hasInfiniteEnergy() ? "∞" : NumberFormatter.getInstance().format(spawner.getEnergy()),
-                            spawner.getIntegrity().toString() + "%",
-                            spawner.isEnabled() ? ENABLED : DISABLED
-                    })));
-                }
-
-                actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, null)); // no action
-
-                meta.setDisplayName(spawner.getSpawner().getDisplayName());
-                meta.setLore(lore);
-                item.setItemMeta(meta);
-
-                builders.add(ItemBuilder.build(item, slot, actions));
-            }
-        }
-
-        int nextPageSlot = FileUtils.get().getInt(file, "Inventory.next-page-slot");
-        int previousPageSlot = FileUtils.get().getInt(file, "Inventory.previous-page-slot");
-
-        InventoryBuilder.build(player, inventory, title, builders, nextPageSlot, previousPageSlot, nextPageItem, previousPageItem);
     }
 
     public void openPlayerSpawnersMenu(Player player, List<PlayerSpawner> spawners) {
@@ -348,7 +247,7 @@ public class Menus {
                             NumberFormatter.getInstance().format(spawner.getStack()),
                             NumberFormatter.getInstance().format(spawner.getDrops()),
                             spawner.hasInfiniteEnergy() ? "∞" : NumberFormatter.getInstance().format(spawner.getEnergy()),
-                            spawner.getIntegrity().toString() + "%",
+                            spawner.hasInfiniteIntegrity() ? "∞" : spawner.getIntegrity().toString() + "%",
                             spawner.isEnabled() ? ENABLED : DISABLED
                     })));
                 }
@@ -359,7 +258,7 @@ public class Menus {
 
                 int slot = Integer.parseInt(slots[i]);
 
-                actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, () -> {
+                actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, item, () -> {
                     openSpawnerMenu(player, spawner);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
                 }));
@@ -378,7 +277,7 @@ public class Menus {
         int sellAllSlot = FileUtils.get().getInt(file, "Sell-All.slot");
 
         inventory.setItem(sellAllSlot, sellAll);
-        inventoryUtils.addAction(inventory, sellAllSlot, () -> {
+        inventoryUtils.addAction(inventory, sellAll, () -> {
             BigInteger dropsPrice = getTotalDropsPrice(player);
 
             if (dropsPrice.signum() <= 0) {
@@ -386,7 +285,7 @@ public class Menus {
                 return;
             }
 
-            for (PlayerSpawner spawner : SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
+            for (PlayerSpawner spawner : DataManager.getInstance().getCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
                 if (spawner == null) continue;
 
                 spawner.sellDrops(player);
@@ -400,8 +299,8 @@ public class Menus {
         int enableAllSlot = FileUtils.get().getInt(file, "Enable-All.slot");
 
         inventory.setItem(enableAllSlot, enableAll);
-        inventoryUtils.addAction(inventory, enableAllSlot, () -> {
-            for (PlayerSpawner spawner : SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
+        inventoryUtils.addAction(inventory, enableAll, () -> {
+            for (PlayerSpawner spawner : DataManager.getInstance().getCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
                 if (spawner == null) continue;
                 if (!spawner.hasInfiniteEnergy() && spawner.getEnergy().signum() <= 0) continue;
 
@@ -416,8 +315,8 @@ public class Menus {
         int disableAllSlot = FileUtils.get().getInt(file, "Disable-All.slot");
 
         inventory.setItem(disableAllSlot, disableAll);
-        inventoryUtils.addAction(inventory, disableAllSlot, () -> {
-            for (PlayerSpawner spawner : SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
+        inventoryUtils.addAction(inventory, disableAll, () -> {
+            for (PlayerSpawner spawner : DataManager.getInstance().getCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
                 if (spawner == null) continue;
 
                 spawner.setStatus(false);
@@ -431,6 +330,43 @@ public class Menus {
         int previousPageSlot = FileUtils.get().getInt(file, "Inventory.previous-page-slot");
 
         InventoryBuilder.build(player, inventory, title, builders, nextPageSlot, previousPageSlot, nextPageItem, previousPageItem);
+    }
+
+    public void openTopSpawnersMenu(Player player) {
+        FileUtils.Files file = FileUtils.Files.TOP_SPAWNERS;
+
+        String title = ChatColor.translateAlternateColorCodes('&', FileUtils.get().getString(file, "Inventory.title"));
+        int size = FileUtils.get().getInt(file, "Inventory.size");
+
+        Inventory inventory = Bukkit.createInventory(null, size, title);
+
+        String[] topSlots = FileUtils.get().getString(file, "Inventory.slots").replace(" ", "").split(",");
+
+        Map<UUID, BigInteger> topSpawners = DataManager.getInstance().getCache().getTopSpawners();
+        int pos = 0;
+
+        for (Map.Entry<UUID, BigInteger> entry : topSpawners.entrySet()) {
+            UUID uuid = entry.getKey();
+            BigInteger stack = entry.getValue();
+
+            ItemStack item = ItemBuilder.build(FileUtils.get().getFile(file).get(), "Item", new String[]{
+                    "{player}",
+                    "{spawners}",
+                    "{pos}"
+            }, new String[]{
+                    Bukkit.getOfflinePlayer(uuid).getName(),
+                    NumberFormatter.getInstance().format(stack),
+                    String.valueOf(++pos)
+            }).build();
+
+            int slot = Integer.parseInt(topSlots[pos-1]);
+
+            inventoryUtils.addAction(inventory, item, null, InventoryUtils.ActionType.ALL_CLICKS);
+
+            inventory.setItem(slot, item);
+        }
+
+        player.openInventory(inventory);
     }
 
     public void openManagersMenu(Player player, PlayerSpawner spawner) {
@@ -486,7 +422,7 @@ public class Menus {
                     meta.setLore(lore);
                     item.setItemMeta(meta);
 
-                    actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, () -> {
+                    actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, item, () -> {
                         openPermissionsMenu(player, spawner, manager);
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
                     }));
@@ -522,7 +458,7 @@ public class Menus {
         int backSlot = FileUtils.get().getInt(file, "Back.slot");
 
         inventory.setItem(backSlot, back);
-        inventoryUtils.addAction(inventory, backSlot, () -> {
+        inventoryUtils.addAction(inventory, back, () -> {
             openSpawnerMenu(player, spawner);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
         }, InventoryUtils.ActionType.ALL_CLICKS);
@@ -565,12 +501,12 @@ public class Menus {
                 String action = FileUtils.get().getString(file, "Inventory.items." + str + ".action");
 
                 switch (action.toUpperCase()) {
-                    case "BACK" -> actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, () -> {
+                    case "BACK" -> actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, item, () -> {
                         openManagersMenu(player, spawner);
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 2f, 2f);
                     }));
 
-                    case "REMOVE" -> actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, () -> {
+                    case "REMOVE" -> actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, item, () -> {
                         spawner.getManagers().remove(manager);
                         spawner.setQueueUpdate(true);
                         openManagersMenu(player, spawner);
@@ -582,7 +518,7 @@ public class Menus {
 
                 final Permission finalPermission = permission;
 
-                actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, () -> {
+                actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, item, () -> {
                     if (!player.getUniqueId().equals(spawner.getOwnerUUID())) {
                         player.sendMessage(ONLY_OWNER);
                         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.5f, 0.5f);
@@ -616,7 +552,7 @@ public class Menus {
         for (String str : FileUtils.get().getSection(file, "Inventory.items")) {
             if (++i >= slots.length) i = 0;
 
-            Spawner spawner = SpawnerManager.getInstance().getSpawner(str);
+            Spawner spawner = DataManager.getInstance().getSpawner(str);
             if (spawner == null) continue;
 
             List<InventoryUtils.Action> actions = new ArrayList<>(1);
@@ -638,7 +574,7 @@ public class Menus {
             }).build();
             int slot = Integer.parseInt(slots[i]);
 
-            actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, () -> {
+            actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, item, () -> {
                 PlayerChatListener.getPlayerChat().put(player, new PlayerChat(player, spawner, price, Action.BUY_SPAWNER));
                 player.closeInventory();
                 clearChat(player);
@@ -684,7 +620,7 @@ public class Menus {
         for (String str : FileUtils.get().getSection(file, "Inventory.items")) {
             if (++i >= slots.length) i = 0;
 
-            Spawner spawner = SpawnerManager.getInstance().getSpawner(str);
+            Spawner spawner = DataManager.getInstance().getSpawner(str);
             if (spawner == null) continue;
 
             List<InventoryUtils.Action> actions = new ArrayList<>(1);
@@ -704,7 +640,7 @@ public class Menus {
             }).build();
             int slot = Integer.parseInt(slots[i]);
 
-            actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, slot, () -> {
+            actions.add(new InventoryUtils.Action(InventoryUtils.ActionType.ALL_CLICKS, item, () -> {
                 PlayerGeneralListeners.getChoosingGift().remove(player);
                 player.getInventory().addItem(spawner.getItem(spawnersAmount, 100));
                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 10f);
@@ -723,7 +659,7 @@ public class Menus {
     private BigInteger getTotalDrops(Player player) {
         BigInteger dropsAmount = BigInteger.ZERO;
 
-        for (PlayerSpawner spawner : SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
+        for (PlayerSpawner spawner : DataManager.getInstance().getCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
             if (spawner == null) continue;
             if (spawner.getDrops().signum() <= 0) continue;
 
@@ -736,7 +672,7 @@ public class Menus {
     private BigInteger getTotalDropsPrice(Player player) {
         BigInteger dropsPrice = BigInteger.ZERO;
 
-        for (PlayerSpawner spawner : SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
+        for (PlayerSpawner spawner : DataManager.getInstance().getCache().getPlayerSpawnersByUUID(player.getUniqueId())) {
             if (spawner == null) continue;
             if (spawner.getDrops().signum() <= 0) continue;
 

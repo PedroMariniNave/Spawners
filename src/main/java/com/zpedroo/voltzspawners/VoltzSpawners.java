@@ -1,28 +1,28 @@
 package com.zpedroo.voltzspawners;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.zpedroo.voltzspawners.commands.SpawnersCmd;
 import com.zpedroo.voltzspawners.hooks.ProtocolLibHook;
 import com.zpedroo.voltzspawners.hooks.VaultHook;
 import com.zpedroo.voltzspawners.hooks.WorldGuardHook;
 import com.zpedroo.voltzspawners.listeners.EntityListeners;
-import com.zpedroo.voltzspawners.listeners.SpawnerListeners;
 import com.zpedroo.voltzspawners.listeners.PlayerChatListener;
 import com.zpedroo.voltzspawners.listeners.PlayerGeneralListeners;
+import com.zpedroo.voltzspawners.listeners.SpawnerListeners;
+import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.managers.SpawnerManager;
 import com.zpedroo.voltzspawners.mysql.DBConnection;
-import com.zpedroo.voltzspawners.tasks.SpawnerTask;
 import com.zpedroo.voltzspawners.tasks.QuotationTask;
 import com.zpedroo.voltzspawners.tasks.SaveTask;
+import com.zpedroo.voltzspawners.tasks.SpawnerTask;
 import com.zpedroo.voltzspawners.utils.EntityHider;
+import com.zpedroo.voltzspawners.utils.FileUtils;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import com.zpedroo.voltzspawners.utils.formatter.TimeFormatter;
 import com.zpedroo.voltzspawners.utils.item.Items;
 import com.zpedroo.voltzspawners.utils.menu.Menus;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.StringUtils;
-import org.bukkit.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -38,14 +38,14 @@ public class VoltzSpawners extends JavaPlugin {
 
         if (!isMySQLEnabled(getConfig())) {
             getLogger().log(Level.SEVERE, "MySQL are disabled! You need to enable it.");
-            Bukkit.getPluginManager().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
         new DBConnection(getConfig());
-        new VaultHook().hook();
+        new SpawnerManager();
+        new VaultHook();
         new WorldGuardHook();
-        new ProtocolLibHook();
         new SpawnerTask(this);
         new SaveTask(this);
         new QuotationTask(this);
@@ -55,6 +55,8 @@ public class VoltzSpawners extends JavaPlugin {
         new TimeFormatter();
         new EntityHider(this, EntityHider.Policy.BLACKLIST);
 
+        ProtocolLibrary.getProtocolManager().addPacketListener(new ProtocolLibHook(this, PacketType.Play.Client.LOOK));
+
         registerCommands();
         registerListeners();
     }
@@ -63,19 +65,12 @@ public class VoltzSpawners extends JavaPlugin {
         if (!isMySQLEnabled(getConfig())) return;
 
         try {
-            SpawnerManager.getInstance().saveAll();
+            DataManager.getInstance().saveAll();
+            SpawnerManager.getInstance().clearAll();
             DBConnection.getInstance().closeConnection();
         } catch (Exception ex) {
             getLogger().log(Level.SEVERE, "An error occurred while trying to save data!");
             ex.printStackTrace();
-        }
-
-        for (World world : Bukkit.getWorlds()) {
-            for (Entity entity : world.getEntities()) {
-                if (entity.hasMetadata("MobAmount") || entity.getType().equals(EntityType.DROPPED_ITEM)) entity.remove();
-            }
-
-            world.save();
         }
     }
 

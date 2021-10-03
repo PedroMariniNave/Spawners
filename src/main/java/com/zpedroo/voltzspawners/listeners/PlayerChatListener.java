@@ -1,10 +1,11 @@
 package com.zpedroo.voltzspawners.listeners;
 
+import com.zpedroo.voltzspawners.VoltzSpawners;
 import com.zpedroo.voltzspawners.hooks.VaultHook;
-import com.zpedroo.voltzspawners.spawner.Spawner;
+import com.zpedroo.voltzspawners.objects.Spawner;
 import com.zpedroo.voltzspawners.objects.Manager;
 import com.zpedroo.voltzspawners.objects.PlayerChat;
-import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.PlayerSpawner;
 import com.zpedroo.voltzspawners.utils.config.Messages;
 import com.zpedroo.voltzspawners.utils.enums.Action;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
@@ -49,7 +50,7 @@ public class PlayerChatListener implements Listener {
         switch (action) {
             case BUY_SPAWNER -> {
                 BigInteger price = playerChat.getPrice();
-                BigInteger money = new BigInteger(String.format("%.0f", VaultHook.getMoney(player)));
+                BigInteger money = new BigInteger(String.format("%.0f", VaultHook.get().getMoney(player)));
                 BigInteger amount = null;
                 if (StringUtils.equals(msg, "*")) {
                     amount = money.divide(price);
@@ -59,7 +60,7 @@ public class PlayerChatListener implements Listener {
                         return;
                     }
 
-                    VaultHook.removeMoney(player, price.multiply(amount).doubleValue());
+                    VaultHook.get().removeMoney(player, price.multiply(amount).doubleValue());
                     player.getInventory().addItem(spawner.getItem(amount, 100));
 
                     for (String purchasedMsg : Messages.SUCCESSFUL_PURCHASED) {
@@ -91,7 +92,7 @@ public class PlayerChatListener implements Listener {
                     return;
                 }
 
-                VaultHook.removeMoney(player, price.multiply(amount).doubleValue());
+                VaultHook.get().removeMoney(player, price.multiply(amount).doubleValue());
                 player.getInventory().addItem(spawner.getItem(amount, 100));
 
                 for (String purchasedMsg : Messages.SUCCESSFUL_PURCHASED) {
@@ -126,7 +127,7 @@ public class PlayerChatListener implements Listener {
 
                 playerSpawner.getManagers().add(new Manager(target.getUniqueId(), new ArrayList<>(5)));
                 playerSpawner.setQueueUpdate(true);
-                Menus.getInstance().openManagersMenu(player, playerSpawner);
+                VoltzSpawners.get().getServer().getScheduler().runTaskLater(VoltzSpawners.get(), () -> Menus.getInstance().openManagersMenu(player, playerSpawner), 0L);
             }
             case REMOVE_STACK -> {
                 BigInteger stack = playerSpawner.getStack();

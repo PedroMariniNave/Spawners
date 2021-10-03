@@ -1,8 +1,8 @@
 package com.zpedroo.voltzspawners.tasks;
 
 import com.zpedroo.voltzspawners.VoltzSpawners;
+import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.managers.EntityManager;
-import com.zpedroo.voltzspawners.managers.SpawnerManager;
 import com.zpedroo.voltzspawners.utils.config.Settings;
 import org.bukkit.Sound;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -12,15 +12,15 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Random;
 
-public class    SpawnerTask extends BukkitRunnable {
+public class SpawnerTask extends BukkitRunnable {
 
     public SpawnerTask(VoltzSpawners voltzSpawners) {
-        this.runTaskTimer(voltzSpawners, 20 * 30L, Settings.SPAWNER_UPDATE);
+        this.runTaskTimerAsynchronously(voltzSpawners, 20 * 30L, Settings.SPAWNER_UPDATE);
     }
 
     @Override
     public void run() {
-        new HashSet<>(SpawnerManager.getInstance().getDataCache().getPlayerSpawners().values()).forEach(spawner -> {
+        new HashSet<>(DataManager.getInstance().getCache().getPlayerSpawners().values()).forEach(spawner -> {
             if (spawner == null) return;
             if (!spawner.isEnabled()) {
                 if (!spawner.hasInfiniteEnergy() && spawner.getEnergy().signum() <= 0) return;
@@ -28,6 +28,7 @@ public class    SpawnerTask extends BukkitRunnable {
 
                 spawner.switchStatus();
             }
+            if (!spawner.getLocation().getChunk().isLoaded()) return;
 
             int delay = spawner.getDelay() - Settings.SPAWNER_UPDATE;
             spawner.setDelay(delay);
@@ -67,10 +68,12 @@ public class    SpawnerTask extends BukkitRunnable {
             }
 
             if (amount.signum() <= 0) amount = BigInteger.ONE;
-            BigInteger energy = amount.divide(BigInteger.TEN); // 10 stacks = 1 energy
-            EntityManager.spawn(spawner, amount);
+
+            final BigInteger finalAmount = amount;
+            VoltzSpawners.get().getServer().getScheduler().runTaskLater(VoltzSpawners.get(), () -> EntityManager.spawn(spawner, finalAmount), 0L);
 
             if (!spawner.hasInfiniteEnergy()) {
+                BigInteger energy = amount.divide(BigInteger.TEN); // 10 stacks = 1 energy
                 spawner.removeEnergy(energy.signum() <= 0 ? BigInteger.ONE : energy);
 
                 if (spawner.getEnergy().signum() <= 0) {

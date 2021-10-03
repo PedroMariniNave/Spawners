@@ -1,4 +1,4 @@
-package com.zpedroo.voltzspawners.spawner;
+package com.zpedroo.voltzspawners.objects;
 
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import de.tr7zw.nbtapi.NBTItem;

@@ -1,5 +1,5 @@
 name: Spawners
-description: ${project.description}
+description: Only a simple spawners plugin.
 version: 1.0
 api-version: 1.16
 author: zPedroo_

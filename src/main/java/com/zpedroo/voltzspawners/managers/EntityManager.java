@@ -1,7 +1,7 @@
 package com.zpedroo.voltzspawners.managers;
 
 import com.zpedroo.voltzspawners.VoltzSpawners;
-import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.PlayerSpawner;
 import com.zpedroo.voltzspawners.utils.config.Settings;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import org.apache.commons.lang.StringUtils;
@@ -22,7 +22,7 @@ public class EntityManager {
             if (near == null || !near.getType().equals(spawner.getSpawner().getEntity())) continue;
             if (!near.hasMetadata("Spawner")) continue;
 
-            String serialized = SpawnerManager.getInstance().serializeLocation(spawner.getLocation());
+            String serialized = DataManager.getInstance().serializeLocation(spawner.getLocation());
             if (!StringUtils.equals(near.getMetadata("Spawner").get(0).asString(), serialized)) continue;
 
             final BigInteger stack = new BigInteger(near.getMetadata("MobAmount").get(0).asString());
@@ -45,7 +45,7 @@ public class EntityManager {
         LivingEntity entity = (LivingEntity) spawner.getLocation().getWorld().spawnEntity(location, spawner.getSpawner().getEntity());
         entity.setRotation(180f, 0f);
         entity.setMetadata("MobAmount", new FixedMetadataValue(VoltzSpawners.get(), amount.toString()));
-        entity.setMetadata("Spawner", new FixedMetadataValue(VoltzSpawners.get(), SpawnerManager.getInstance().serializeLocation(spawner.getLocation())));
+        entity.setMetadata("Spawner", new FixedMetadataValue(VoltzSpawners.get(), DataManager.getInstance().serializeLocation(spawner.getLocation())));
         entity.setCustomName(StringUtils.replaceEach(spawner.getSpawner().getEntityName(), new String[]{
                 "{stack}"
         }, new String[]{

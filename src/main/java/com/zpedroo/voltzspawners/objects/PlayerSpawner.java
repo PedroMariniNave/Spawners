@@ -1,8 +1,7 @@
-package com.zpedroo.voltzspawners.spawner;
+package com.zpedroo.voltzspawners.objects;
 
 import com.zpedroo.voltzspawners.VoltzSpawners;
-import com.zpedroo.voltzspawners.managers.SpawnerManager;
-import com.zpedroo.voltzspawners.objects.Manager;
+import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.utils.config.Messages;
 import com.zpedroo.voltzspawners.utils.config.Titles;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
@@ -120,7 +119,7 @@ public class PlayerSpawner {
     }
 
     public Boolean hasReachStackLimit() {
-        if (spawner.getMaxStack().signum() < 0) return false;
+        if (spawner.getMaxStack().signum() <= 0) return false;
 
         return stack.compareTo(spawner.getMaxStack()) >= 0;
     }
@@ -141,10 +140,14 @@ public class PlayerSpawner {
         return hologram;
     }
 
+    public Set<Entity> getEntities() {
+        return entities;
+    }
+
     public void delete() {
-        SpawnerManager.getInstance().getDataCache().getDeletedSpawners().add(location);
-        SpawnerManager.getInstance().getDataCache().getPlayerSpawners().remove(location);
-        SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(ownerUUID).remove(this);
+        DataManager.getInstance().getCache().getDeletedSpawners().add(location);
+        DataManager.getInstance().getCache().getPlayerSpawners().remove(location);
+        DataManager.getInstance().getCache().getPlayerSpawnersByUUID(ownerUUID).remove(this);
 
         this.removeEntities();
         this.hologram.remove();
@@ -313,15 +316,11 @@ public class PlayerSpawner {
     }
 
     public void cache() {
-        SpawnerManager.getInstance().getDataCache().getPlayerSpawners().put(location, this);
+        DataManager.getInstance().getCache().getPlayerSpawners().put(location, this);
 
-        List<PlayerSpawner> spawners = SpawnerManager.getInstance().getDataCache().getPlayerSpawnersByUUID(getOwnerUUID());
+        List<PlayerSpawner> spawners = DataManager.getInstance().getCache().getPlayerSpawnersByUUID(ownerUUID);
         spawners.add(this);
 
-        SpawnerManager.getInstance().getDataCache().setUUIDSpawners(ownerUUID, spawners);
-    }
-
-    public Set<Entity> getEntities() {
-        return entities;
+        DataManager.getInstance().getCache().setUUIDSpawners(ownerUUID, spawners);
     }
 }

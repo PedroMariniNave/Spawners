@@ -1,7 +1,5 @@
 package com.zpedroo.voltzspawners.objects;
 
-import com.zpedroo.voltzspawners.spawner.Spawner;
-import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
 import com.zpedroo.voltzspawners.utils.enums.Action;
 import org.bukkit.entity.Player;
 

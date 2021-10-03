@@ -1,13 +1,13 @@
-package com.zpedroo.voltzspawners.spawner.cache;
+package com.zpedroo.voltzspawners.managers.cache;
 
-import com.zpedroo.voltzspawners.spawner.Spawner;
-import com.zpedroo.voltzspawners.spawner.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.Spawner;
+import com.zpedroo.voltzspawners.objects.PlayerSpawner;
 import org.bukkit.Location;
 
 import java.math.BigInteger;
 import java.util.*;
 
-public class SpawnerDataCache {
+public class DataCache {
 
     private Map<String, Spawner> spawners;
     private Map<Location, PlayerSpawner> playerSpawners;
@@ -15,7 +15,7 @@ public class SpawnerDataCache {
     private Map<UUID, BigInteger> topSpawners;
     private Set<Location> deletedSpawners;
 
-    public SpawnerDataCache() {
+    public DataCache() {
         this.spawners = new HashMap<>(32);
         this.playerSpawners = new HashMap<>(5120);
         this.deletedSpawners = new HashSet<>(5120);
@@ -36,7 +36,7 @@ public class SpawnerDataCache {
     }
 
     public List<PlayerSpawner> getPlayerSpawnersByUUID(UUID uuid) {
-        if (!playerSpawnersByUUID.containsKey(uuid)) return new ArrayList<>();
+        if (!playerSpawnersByUUID.containsKey(uuid)) return new ArrayList<>(0);
 
         return playerSpawnersByUUID.get(uuid);
     }
@@ -49,7 +49,7 @@ public class SpawnerDataCache {
         return deletedSpawners;
     }
 
-    public void setPlayerSpawners(HashMap<Location, PlayerSpawner> playerSpawners) {
+    public void setPlayerSpawners(Map<Location, PlayerSpawner> playerSpawners) {
         this.playerSpawners = playerSpawners;
     }
 

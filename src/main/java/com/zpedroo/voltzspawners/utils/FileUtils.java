@@ -1,10 +1,11 @@
-package com.zpedroo.voltzspawners;
+package com.zpedroo.voltzspawners.utils;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,14 +17,12 @@ public class FileUtils {
     private static FileUtils instance;
     public static FileUtils get() { return instance; }
 
-    private static String CHARSET_NAME = "UTF-8";
-
-    private VoltzSpawners voltzSpawners;
+    private Plugin plugin;
     private Map<Files, FileManager> files;
 
-    public FileUtils(VoltzSpawners voltzSpawners) {
+    public FileUtils(Plugin plugin) {
         instance = this;
-        this.voltzSpawners = voltzSpawners;
+        this.plugin = plugin;
         this.files = new HashMap<>(Files.values().length);
 
         for (Files files : Files.values()) {
@@ -109,26 +108,24 @@ public class FileUtils {
     }
 
     public enum Files {
-        CONFIG("config", "yml", "configuration-files", "", false),
-        MANAGERS("managers", "yml", "menus", "menus", false),
-        PERMISSIONS("permissions", "yml", "menus", "menus", false),
-        PLAYER_SPAWNERS("player_spawners", "yml", "menus", "menus", false),
-        OTHER_SPAWNERS("other_spawners", "yml", "menus", "menus", false),
-        TOP_SPAWNERS("top_spawners", "yml", "menus", "menus", false),
-        SHOP("shop", "yml", "menus", "menus", false),
-        GIFT("gift", "yml", "menus", "menus", false),
-        MAIN("main", "yml", "menus", "menus", false),
-        CHICKEN("chicken", "yml", "spawners", "spawners", true);
+        CONFIG("config", "configuration-files", "", false),
+        MANAGERS("managers", "menus", "menus", false),
+        PERMISSIONS("permissions", "menus", "menus", false),
+        PLAYER_SPAWNERS("player_spawners", "menus", "menus", false),
+        OTHER_SPAWNERS("other_spawners", "menus", "menus", false),
+        TOP_SPAWNERS("top_spawners", "menus", "menus", false),
+        SHOP("shop", "menus", "menus", false),
+        GIFT("gift", "menus", "menus", false),
+        MAIN("main", "menus", "menus", false),
+        CHICKEN("chicken", "spawners", "spawners", true);
 
-        public String name;
-        public String extension;
-        public String resource;
-        public String folder;
-        public Boolean requireEmpty;
+        private String name;
+        private String resource;
+        private String folder;
+        private Boolean requireEmpty;
 
-        Files(String name, String extension, String resource, String folder, Boolean requireEmpty) {
+        Files(String name, String resource, String folder, Boolean requireEmpty) {
             this.name = name;
-            this.extension = extension;
             this.resource = resource;
             this.folder = folder;
             this.requireEmpty = requireEmpty;
@@ -138,10 +135,6 @@ public class FileUtils {
             return name;
         }
 
-        public String getExtension() {
-            return extension;
-        }
-
         public String getResource() {
             return resource;
         }
@@ -149,19 +142,23 @@ public class FileUtils {
         public String getFolder() {
             return folder;
         }
+
+        public Boolean requireEmpty() {
+            return requireEmpty;
+        }
     }
 
     public class FileManager {
 
         private File file;
-        private FileConfiguration yamlConfig;
+        private FileConfiguration fileConfig;
 
         public FileManager(Files file) {
-            this.file = new File(voltzSpawners.getDataFolder() + (file.getFolder().isEmpty() ? "" : "/" + file.getFolder()), file.getName() + '.' + file.getExtension());
+            this.file = new File(plugin.getDataFolder() + (file.getFolder().isEmpty() ? "" : "/" + file.getFolder()), file.getName() + ".yml");
 
             if (!this.file.exists()) {
-                if (file.requireEmpty) {
-                    File folder = new File(voltzSpawners.getDataFolder(), "/spawners");
+                if (file.requireEmpty()) {
+                    File folder = new File(plugin.getDataFolder(), file.getFolder());
                     if (folder.listFiles() != null) {
                         if (Stream.of(folder.listFiles()).map(YamlConfiguration::loadConfiguration).count() > 0) return;
                     }
@@ -171,24 +168,22 @@ public class FileUtils {
                     this.file.getParentFile().mkdirs();
                     this.file.createNewFile();
 
-                    copy(voltzSpawners.getResource((file.getResource().isEmpty() ? "" : file.getResource() + "/") + file.getName() + '.' + file.getExtension()), this.file);
+                    copy(plugin.getResource((file.getResource().isEmpty() ? "" : file.getResource() + "/") + file.getName() + ".yml"), this.file);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
 
-            if (!StringUtils.equals(file.getExtension(), "yml")) return;
-
             try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), CHARSET_NAME));
-                yamlConfig = YamlConfiguration.loadConfiguration(reader);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), StandardCharsets.UTF_8));
+                fileConfig = YamlConfiguration.loadConfiguration(reader);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
 
         public FileConfiguration get() {
-            return yamlConfig;
+            return fileConfig;
         }
 
         public File getFile() {
@@ -197,15 +192,7 @@ public class FileUtils {
 
         public void save() {
             try {
-                yamlConfig.save(file);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        public void reload() {
-            try {
-                yamlConfig = YamlConfiguration.loadConfiguration(file);
+                fileConfig.save(file);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

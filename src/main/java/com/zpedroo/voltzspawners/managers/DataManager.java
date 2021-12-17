@@ -3,12 +3,14 @@ package com.zpedroo.voltzspawners.managers;
 import com.zpedroo.voltzspawners.VoltzSpawners;
 import com.zpedroo.voltzspawners.managers.cache.DataCache;
 import com.zpedroo.voltzspawners.mysql.DBConnection;
+import com.zpedroo.voltzspawners.objects.Bonus;
 import com.zpedroo.voltzspawners.objects.Manager;
-import com.zpedroo.voltzspawners.objects.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.PlacedSpawner;
 import com.zpedroo.voltzspawners.objects.Spawner;
+import com.zpedroo.voltzspawners.utils.FileUtils;
 import com.zpedroo.voltzspawners.utils.builder.ItemBuilder;
-import com.zpedroo.voltzspawners.utils.enums.Permission;
-import org.bukkit.Bukkit;
+import com.zpedroo.voltzspawners.enums.Permission;
+import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,11 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
-
-import static com.zpedroo.voltzspawners.utils.config.Settings.MAX_PRICE;
-import static com.zpedroo.voltzspawners.utils.config.Settings.MIN_PRICE;
 
 public class DataManager {
 
@@ -37,7 +35,9 @@ public class DataManager {
         instance = this;
         this.dataCache = new DataCache();
         this.loadConfigSpawners();
+        this.loadConfigBonuses();
         VoltzSpawners.get().getServer().getScheduler().runTaskLaterAsynchronously(VoltzSpawners.get(), this::loadPlacedSpawners, 20L);
+        VoltzSpawners.get().getServer().getScheduler().runTaskLaterAsynchronously(VoltzSpawners.get(), this::loadTopSpawners, 20L);
     }
 
     private void loadConfigSpawners() {
@@ -57,30 +57,42 @@ public class DataManager {
             String type = fl.getName().replace(".yml", "");
             String typeTranslated = file.getString("Spawner-Settings.type-translated");
             String displayName = ChatColor.translateAlternateColorCodes('&', file.getString("Spawner-Settings.display-name"));
-            Integer delay = file.getInt("Spawner-Settings.drops.delay");
-            BigInteger amount = new BigInteger(file.getString("Spawner-Settings.drops.amount"));
-            BigInteger dropsValue = new BigInteger(file.getString("Spawner-Settings.drops.price"));
-            BigInteger dropsPreviousValue = new BigInteger(file.getString("Spawner-Settings.drops.previous"));
-            BigInteger maxStack = new BigInteger(file.getString("Spawner-Settings.max-stack"));
-            String permission = file.getString("Spawner-Settings.place-permission", "NULL");
+            int delay = file.getInt("Spawner-Settings.drops.delay");
+            BigInteger amount = NumberFormatter.getInstance().filter(file.getString("Spawner-Settings.drops.amount"));
+            BigInteger dropsValue = NumberFormatter.getInstance().filter(file.getString("Spawner-Settings.drops.price"));
+            BigInteger dropsPreviousValue = NumberFormatter.getInstance().filter(file.getString("Spawner-Settings.drops.previous"));
+            BigInteger dropsMinimumValue = NumberFormatter.getInstance().filter(file.getString("Spawner-Settings.drops.min"));
+            BigInteger dropsMaximumValue = NumberFormatter.getInstance().filter(file.getString("Spawner-Settings.drops.max"));
+            BigInteger maxStack = NumberFormatter.getInstance().filter(file.getString("Spawner-Settings.max-stack"));
+            String permission = file.getString("Spawner-Settings.permission", null);
             List<String> commands = file.getStringList("Spawner-Settings.commands");
 
+            Spawner spawner = new Spawner(entity, entityName, item, block, type, typeTranslated, displayName, delay, amount, dropsValue, dropsPreviousValue, dropsMinimumValue, dropsMaximumValue, maxStack, permission, commands);
+
             if (dropsValue.signum() <= 0) {
-                dropsValue = new BigInteger(String.format("%.0f", ThreadLocalRandom.current().nextDouble(MIN_PRICE.doubleValue(), MAX_PRICE.doubleValue())));
-                try {
-                    file.set("Spawner-Settings.drops.price", dropsValue.longValue());
-                    file.save(fl);
-                } catch (Exception ex) {
-                    // ignore
-                }
+                SpawnerManager.updatePrice(spawner);
             }
 
-            cache(new Spawner(entity, entityName, item, block, type, typeTranslated, displayName, delay, amount, dropsValue, dropsPreviousValue, maxStack, permission, commands));
+            cache(spawner);
+        }
+    }
+
+    private void loadConfigBonuses() {
+        FileUtils.Files file = FileUtils.Files.CONFIG;
+        for (String str : FileUtils.get().getSection(file, "Bonus")) {
+            String permission = FileUtils.get().getString(file, "Bonus." + str + ".permission");
+            double bonusPercentage = FileUtils.get().getDouble(file, "Bonus." + str + ".bonus");
+
+            cache(new Bonus(permission, bonusPercentage));
         }
     }
 
     private void loadPlacedSpawners() {
-        dataCache.setPlayerSpawners(DBConnection.getInstance().getDBManager().getPlacedSpawners());
+        dataCache.setPlacedSpawners(DBConnection.getInstance().getDBManager().getPlacedSpawners());
+    }
+
+    private void loadTopSpawners() {
+        dataCache.setTopSpawners(DBConnection.getInstance().getDBManager().getCache().getTopSpawners());
     }
 
     public void updateTopSpawners() {
@@ -88,20 +100,18 @@ public class DataManager {
     }
 
     public void saveAll() {
-        new HashSet<>(dataCache.getDeletedSpawners()).forEach(spawner -> {
-            DBConnection.getInstance().getDBManager().deleteSpawner(serializeLocation(spawner));
+        new HashSet<>(dataCache.getDeletedSpawners()).forEach(spawnerLocation -> {
+            DBConnection.getInstance().getDBManager().deleteSpawner(spawnerLocation);
         });
 
         dataCache.getDeletedSpawners().clear();
 
-        new HashSet<>(dataCache.getPlayerSpawners().values()).forEach(spawner -> {
+        new HashSet<>(dataCache.getPlacedSpawners().values()).forEach(spawner -> {
             if (spawner == null) return;
-
-            spawner.removeEntities();
             if (!spawner.isQueueUpdate()) return;
 
             DBConnection.getInstance().getDBManager().saveSpawner(spawner);
-            spawner.setQueueUpdate(false);
+            spawner.setUpdate(false);
         });
     }
 
@@ -109,10 +119,14 @@ public class DataManager {
         dataCache.getSpawners().put(spawner.getType().toUpperCase(), spawner);
     }
 
-    private Map<UUID, BigInteger> getTopSpawnersOrdered() {
-        Map<UUID, BigInteger> playerSpawners = new HashMap<>(dataCache.getPlayerSpawnersByUUID().size());
+    private void cache(Bonus bonus) {
+        dataCache.getBonuses().add(bonus);
+    }
 
-        new HashSet<>(dataCache.getPlayerSpawnersByUUID().values()).forEach(spawners -> {
+    private Map<UUID, BigInteger> getTopSpawnersOrdered() {
+        Map<UUID, BigInteger> playerSpawners = new HashMap<>(dataCache.getPlacedSpawnersByUUID().size());
+
+        new HashSet<>(dataCache.getPlacedSpawnersByUUID().values()).forEach(spawners -> {
             new HashSet<>(spawners).forEach(spawner -> {
                 playerSpawners.put(spawner.getOwnerUUID(), spawner.getStack().add(playerSpawners.getOrDefault(spawner.getOwnerUUID(), BigInteger.ZERO)));
             });
@@ -168,36 +182,14 @@ public class DataManager {
         return ret;
     }
 
-    public String serializeLocation(Location location) {
-        if (location == null) return null;
-
-        StringBuilder serialized = new StringBuilder(4);
-        serialized.append(location.getWorld().getName());
-        serialized.append("#" + location.getX());
-        serialized.append("#" + location.getY());
-        serialized.append("#" + location.getZ());
-
-        return serialized.toString();
-    }
-
-    public Location deserializeLocation(String location) {
-        if (location == null) return null;
-
-        String[] locationSplit = location.split("#");
-        double x = Double.parseDouble(locationSplit[1]);
-        double y = Double.parseDouble(locationSplit[2]);
-        double z = Double.parseDouble(locationSplit[3]);
-
-        return new Location(Bukkit.getWorld(locationSplit[0]), x, y, z);
-    }
-
-
     public DataCache getCache() {
         return dataCache;
     }
 
-    public PlayerSpawner getSpawner(Location location) {
-        return dataCache.getPlayerSpawners().get(location);
+    public PlacedSpawner getPlacedSpawner(Location location) {
+        if (dataCache.getPlacedSpawners() == null) return null;
+
+        return dataCache.getPlacedSpawners().get(location);
     }
 
     public Spawner getSpawner(String type) {

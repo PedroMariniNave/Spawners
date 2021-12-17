@@ -1,7 +1,8 @@
 package com.zpedroo.voltzspawners.managers.cache;
 
+import com.zpedroo.voltzspawners.objects.Bonus;
+import com.zpedroo.voltzspawners.objects.PlacedSpawner;
 import com.zpedroo.voltzspawners.objects.Spawner;
-import com.zpedroo.voltzspawners.objects.PlayerSpawner;
 import org.bukkit.Location;
 
 import java.math.BigInteger;
@@ -10,35 +11,33 @@ import java.util.*;
 public class DataCache {
 
     private Map<String, Spawner> spawners;
-    private Map<Location, PlayerSpawner> playerSpawners;
-    private Map<UUID, List<PlayerSpawner>> playerSpawnersByUUID;
+    private Map<Location, PlacedSpawner> placedSpawners;
+    private Map<UUID, List<PlacedSpawner>> placedSpawnersByUUID;
     private Map<UUID, BigInteger> topSpawners;
     private Set<Location> deletedSpawners;
+    private List<Bonus> bonuses;
 
     public DataCache() {
-        this.spawners = new HashMap<>(32);
-        this.playerSpawners = new HashMap<>(5120);
-        this.deletedSpawners = new HashSet<>(5120);
-        this.playerSpawnersByUUID = new HashMap<>(2560);
-        this.topSpawners = new HashMap<>(10);
+        this.spawners = new HashMap<>(24);
+        this.placedSpawnersByUUID = new HashMap<>(32);
+        this.deletedSpawners = new HashSet<>(32);
+        this.bonuses = new ArrayList<>(4);
     }
 
     public Map<String, Spawner> getSpawners() {
         return spawners;
     }
 
-    public Map<Location, PlayerSpawner> getPlayerSpawners() {
-        return playerSpawners;
+    public Map<Location, PlacedSpawner> getPlacedSpawners() {
+        return placedSpawners;
     }
 
-    public Map<UUID, List<PlayerSpawner>> getPlayerSpawnersByUUID() {
-        return playerSpawnersByUUID;
+    public Map<UUID, List<PlacedSpawner>> getPlacedSpawnersByUUID() {
+        return placedSpawnersByUUID;
     }
 
-    public List<PlayerSpawner> getPlayerSpawnersByUUID(UUID uuid) {
-        if (!playerSpawnersByUUID.containsKey(uuid)) return new ArrayList<>(0);
-
-        return playerSpawnersByUUID.get(uuid);
+    public List<PlacedSpawner> getPlayerSpawnersByUUID(UUID uuid) {
+        return placedSpawnersByUUID.getOrDefault(uuid, new LinkedList<>());
     }
 
     public Map<UUID, BigInteger> getTopSpawners() {
@@ -49,12 +48,16 @@ public class DataCache {
         return deletedSpawners;
     }
 
-    public void setPlayerSpawners(Map<Location, PlayerSpawner> playerSpawners) {
-        this.playerSpawners = playerSpawners;
+    public List<Bonus> getBonuses() {
+        return bonuses;
     }
 
-    public void setUUIDSpawners(UUID uuid, List<PlayerSpawner> spawners) {
-        this.playerSpawnersByUUID.put(uuid, spawners);
+    public void setPlacedSpawners(Map<Location, PlacedSpawner> playerSpawners) {
+        this.placedSpawners = playerSpawners;
+    }
+
+    public void setUUIDSpawners(UUID uuid, List<PlacedSpawner> spawners) {
+        this.placedSpawnersByUUID.put(uuid, spawners);
     }
 
     public void setTopSpawners(Map<UUID, BigInteger> topSpawners) {

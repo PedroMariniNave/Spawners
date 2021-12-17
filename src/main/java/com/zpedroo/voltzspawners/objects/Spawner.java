@@ -21,15 +21,17 @@ public class Spawner {
     private String type;
     private String typeTranslated;
     private String displayName;
-    private Integer delay;
-    private BigInteger amount;
+    private int delay;
+    private BigInteger dropsAmount;
     private BigInteger dropsValue;
     private BigInteger dropsPreviousValue;
-    private BigInteger maxStack;
+    private BigInteger dropsMinimumValue;
+    private BigInteger dropsMaximumValue;
+    private BigInteger maximumStack;
     private String permission;
     private List<String> commands;
 
-    public Spawner(EntityType entity, String entityName, ItemStack item, Material block, String type, String typeTranslated, String displayName, Integer delay, BigInteger amount, BigInteger dropsValue, BigInteger dropsPreviousValue, BigInteger maxStack, String permission, List<String> commands) {
+    public Spawner(EntityType entity, String entityName, ItemStack item, Material block, String type, String typeTranslated, String displayName, int delay, BigInteger dropsAmount, BigInteger dropsValue, BigInteger dropsPreviousValue, BigInteger dropsMinimumValue, BigInteger dropsMaximumValue, BigInteger maximumStack, String permission, List<String> commands) {
         this.entity = entity;
         this.entityName = entityName;
         this.item = item;
@@ -38,10 +40,12 @@ public class Spawner {
         this.typeTranslated = typeTranslated;
         this.displayName = displayName;
         this.delay = delay;
-        this.amount = amount;
+        this.dropsAmount = dropsAmount;
         this.dropsValue = dropsValue;
         this.dropsPreviousValue = dropsPreviousValue;
-        this.maxStack = maxStack;
+        this.dropsMinimumValue = dropsMinimumValue;
+        this.dropsMaximumValue = dropsMaximumValue;
+        this.maximumStack = maximumStack;
         this.permission = permission;
         this.commands = commands;
     }
@@ -62,11 +66,11 @@ public class Spawner {
         return item.clone();
     }
 
-    public ItemStack getItem(BigInteger amount, Integer integrity) {
+    public ItemStack getItem(BigInteger amount, BigInteger integrity) {
         NBTItem nbt = new NBTItem(item.clone());
         nbt.setString("SpawnersAmount", amount.toString());
+        nbt.setString("SpawnersIntegrity", integrity.toString());
         nbt.setString("SpawnersType", getType());
-        nbt.setInteger("SpawnersIntegrity", integrity);
 
         ItemStack item = nbt.getItem();
         if (item.getItemMeta() != null) {
@@ -74,10 +78,10 @@ public class Spawner {
             List<String> lore = item.getItemMeta().hasLore() ? item.getItemMeta().getLore() : null;
             ItemMeta meta = item.getItemMeta();
 
-            if (displayName != null) meta.setDisplayName(StringUtils.replaceEach(displayName, new String[] {
+            if (displayName != null) meta.setDisplayName(StringUtils.replaceEach(displayName, new String[]{
                     "{amount}",
                     "{integrity}"
-            }, new String[] {
+            }, new String[]{
                     NumberFormatter.getInstance().format(amount),
                     integrity.toString() + "%"
             }));
@@ -86,10 +90,10 @@ public class Spawner {
                 List<String> newLore = new ArrayList<>(lore.size());
 
                 for (String str : lore) {
-                    newLore.add(StringUtils.replaceEach(str, new String[] {
+                    newLore.add(StringUtils.replaceEach(str, new String[]{
                             "{amount}",
                             "{integrity}"
-                    }, new String[] {
+                    }, new String[]{
                             NumberFormatter.getInstance().format(amount),
                             integrity.toString() + "%"
                     }));
@@ -116,12 +120,12 @@ public class Spawner {
         return displayName;
     }
 
-    public Integer getDelay() {
+    public int getDelay() {
         return delay;
     }
 
-    public BigInteger getAmount() {
-        return amount;
+    public BigInteger getDropsAmount() {
+        return dropsAmount;
     }
 
     public BigInteger getDropsValue() {
@@ -132,8 +136,16 @@ public class Spawner {
         return dropsPreviousValue;
     }
 
-    public BigInteger getMaxStack() {
-        return maxStack;
+    public BigInteger getDropsMinimumValue() {
+        return dropsMinimumValue;
+    }
+
+    public BigInteger getDropsMaximumValue() {
+        return dropsMaximumValue;
+    }
+
+    public BigInteger getMaximumStack() {
+        return maximumStack;
     }
 
     public String getPermission() {

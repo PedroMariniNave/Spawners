@@ -2,11 +2,13 @@ package com.zpedroo.voltzspawners.mysql;
 
 import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.objects.Manager;
-import com.zpedroo.voltzspawners.objects.PlayerSpawner;
+import com.zpedroo.voltzspawners.objects.PlacedSpawner;
 import com.zpedroo.voltzspawners.objects.Spawner;
+import com.zpedroo.voltzspawners.utils.config.Settings;
+import com.zpedroo.voltzspawners.utils.serialization.LocationSerialization;
 import org.bukkit.Location;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.List;
@@ -15,47 +17,47 @@ import java.util.UUID;
 
 public class DBManager extends DataManager {
 
-    public void saveSpawner(PlayerSpawner spawner) {
-        if (contains(DataManager.getInstance().serializeLocation(spawner.getLocation()), "location")) {
+    public void saveSpawner(PlacedSpawner spawner) {
+        if (contains(LocationSerialization.serializeLocation(spawner.getLocation()), "location")) {
             String query = "UPDATE `" + DBConnection.TABLE + "` SET" +
-                    "`location`='" + DataManager.getInstance().serializeLocation(spawner.getLocation()) + "', " +
+                    "`location`='" + LocationSerialization.serializeLocation(spawner.getLocation()) + "', " +
                     "`uuid`='" + spawner.getOwnerUUID().toString() + "', " +
                     "`stack`='" + spawner.getStack().toString() + "', " +
                     "`energy`='" + spawner.getEnergy().toString() + "', " +
                     "`drops`='" + spawner.getDrops().toString() + "', " +
                     "`integrity`='" + spawner.getIntegrity().toString() + "', " +
                     "`type`='" + spawner.getSpawner().getType() + "', " +
-                    "`managers`='" + DataManager.getInstance().serializeManagers(spawner.getManagers()) + "', " +
+                    "`managers`='" + serializeManagers(spawner.getManagers()) + "', " +
                     "`infinite_energy`='" + (spawner.hasInfiniteEnergy() ? 1 : 0) + "', " +
                     "`infinite_integrity`='" + (spawner.hasInfiniteIntegrity() ? 1 : 0) + "', " +
                     "`public`='" + (spawner.isPublic() ? 1 : 0) + "' " +
-                    "WHERE `location`='" + DataManager.getInstance().serializeLocation(spawner.getLocation()) + "';";
+                    "WHERE `location`='" + LocationSerialization.serializeLocation(spawner.getLocation()) + "';";
             executeUpdate(query);
             return;
         }
 
         String query = "INSERT INTO `" + DBConnection.TABLE + "` (`location`, `uuid`, `stack`, `energy`, `drops`, `integrity`, `type`, `managers`, `infinite_energy`, `infinite_integrity`, `public`) VALUES " +
-                "('" + DataManager.getInstance().serializeLocation(spawner.getLocation()) + "', " +
+                "('" + LocationSerialization.serializeLocation(spawner.getLocation()) + "', " +
                 "'" + spawner.getOwnerUUID().toString() + "', " +
                 "'" + spawner.getStack().toString() + "', " +
                 "'" + spawner.getEnergy().toString() + "', " +
                 "'" + spawner.getDrops().toString() + "', " +
                 "'" + spawner.getIntegrity().toString() + "', " +
                 "'" + spawner.getSpawner().getType() + "', " +
-                "'" + DataManager.getInstance().serializeManagers(spawner.getManagers()) + "', " +
+                "'" + serializeManagers(spawner.getManagers()) + "', " +
                 "'" + (spawner.hasInfiniteEnergy() ? 1 : 0) + "', " +
                 "'" + (spawner.hasInfiniteIntegrity() ? 1 : 0) + "', " +
                 "'" + (spawner.isPublic() ? 1 : 0) + "');";
         executeUpdate(query);
     }
 
-    public void deleteSpawner(String location) {
-        String query = "DELETE FROM `" + DBConnection.TABLE + "` WHERE `location`='" + location + "';";
+    public void deleteSpawner(Location location) {
+        String query = "DELETE FROM `" + DBConnection.TABLE + "` WHERE `location`='" + LocationSerialization.serializeLocation(location) + "';";
         executeUpdate(query);
     }
 
-    public Map<Location, PlayerSpawner> getPlacedSpawners() {
-        Map<Location, PlayerSpawner> spawners = new HashMap<>(5120);
+    public Map<Location, PlacedSpawner> getPlacedSpawners() {
+        Map<Location, PlacedSpawner> spawners = new HashMap<>(512);
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -68,25 +70,27 @@ public class DBManager extends DataManager {
             result = preparedStatement.executeQuery();
 
             while (result.next()) {
-                Location location = DataManager.getInstance().deserializeLocation(result.getString(1));
+                Location location = LocationSerialization.deserializeLocation(result.getString(1));
                 UUID ownerUUID = UUID.fromString(result.getString(2));
-                BigDecimal stack = result.getBigDecimal(3);
-                BigDecimal energy = result.getBigDecimal(4);
-                BigDecimal drops = result.getBigDecimal(5);
-                Integer integrity = result.getInt(6);
-                Spawner spawner = DataManager.getInstance().getSpawner(result.getString(7));
-                List<Manager> managers = DataManager.getInstance().deserializeManagers(result.getString(8));
-                Boolean infiniteEnergy = result.getBoolean(9);
-                Boolean infiniteIntegrity = result.getBoolean(10);
-                Boolean publicSpawner = result.getBoolean(11);
-                PlayerSpawner playerSpawner = new PlayerSpawner(location, ownerUUID, stack.toBigInteger(), energy.toBigInteger(), drops.toBigInteger(), integrity, spawner, managers, infiniteEnergy, infiniteIntegrity, publicSpawner);
+                BigInteger stack = result.getBigDecimal(3).toBigInteger();
+                BigInteger energy = result.getBigDecimal(4).toBigInteger();
+                BigInteger drops = result.getBigDecimal(5).toBigInteger();
+                BigInteger integrity = result.getBigDecimal(6).toBigInteger();
+                Spawner spawner = getSpawner(result.getString(7));
+                List<Manager> managers = deserializeManagers(result.getString(8));
+                boolean infiniteEnergy = result.getBoolean(9);
+                boolean infiniteIntegrity = result.getBoolean(10);
+                boolean publicSpawner = result.getBoolean(11);
 
-                spawners.put(location, playerSpawner);
+                PlacedSpawner placedSpawner = new PlacedSpawner(location, ownerUUID, stack, energy, drops, integrity, spawner, managers, infiniteEnergy, infiniteIntegrity, publicSpawner);
+                if (Settings.ALWAYS_ENABLED_WORLDS.contains(location.getWorld().getName())) placedSpawner.setStatus(true);
 
-                List<PlayerSpawner> spawnersList = DataManager.getInstance().getCache().getPlayerSpawnersByUUID(ownerUUID);
-                spawnersList.add(playerSpawner);
+                spawners.put(location, placedSpawner);
 
-                DataManager.getInstance().getCache().setUUIDSpawners(ownerUUID, spawnersList);
+                List<PlacedSpawner> spawnersList = getCache().getPlayerSpawnersByUUID(ownerUUID);
+                spawnersList.add(placedSpawner);
+
+                getCache().setUUIDSpawners(ownerUUID, spawnersList);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -142,7 +146,7 @@ public class DBManager extends DataManager {
     }
 
     protected void createTable() {
-        String query = "CREATE TABLE IF NOT EXISTS `" + DBConnection.TABLE + "` (`location` VARCHAR(255), `uuid` VARCHAR(255), `stack` DECIMAL(40,0), `energy` DECIMAL(40,0), `drops` DECIMAL(40,0), `integrity` INTEGER, `type` VARCHAR(32), `managers` LONGTEXT, `infinite_energy` BOOLEAN, `infinite_integrity` BOOLEAN, `public` BOOLEAN, PRIMARY KEY(`location`));";
+        String query = "CREATE TABLE IF NOT EXISTS `" + DBConnection.TABLE + "` (`location` VARCHAR(255), `uuid` VARCHAR(255), `stack` DECIMAL(40,0), `energy` DECIMAL(40,0), `drops` DECIMAL(40,0), `integrity` DECIMAL(40,0), `type` VARCHAR(32), `managers` LONGTEXT, `infinite_energy` BOOLEAN, `infinite_integrity` BOOLEAN, `public` BOOLEAN, PRIMARY KEY(`location`));";
         executeUpdate(query);
     }
 

@@ -24,9 +24,14 @@ public class SpawnersCmd implements CommandExecutor {
         Player player = sender instanceof Player ? (Player) sender : null;
         Player target = null;
         BigInteger amount = null;
-
+        
         if (args.length > 0) {
             switch (args[0].toUpperCase()) {
+                case "SHOP":
+                    if (player == null) return true;
+
+                    Menus.getInstance().openShopMenu(player);
+                    return true;
                 case "TOP":
                     if (player == null) return true;
 
@@ -59,7 +64,7 @@ public class SpawnersCmd implements CommandExecutor {
                         return true;
                     }
 
-                    target.getInventory().addItem(spawner.getItem(amount, 100));
+                    target.getInventory().addItem(spawner.getItem(amount, BigInteger.valueOf(100)));
                     return true;
                 case "ENERGY":
                     if (!sender.hasPermission("spawners.admin")) break;
@@ -154,7 +159,7 @@ public class SpawnersCmd implements CommandExecutor {
                         return true;
                     }
 
-                    target.getInventory().addItem(Items.getInstance().getRepair(percentage.intValue()));
+                    target.getInventory().addItem(Items.getInstance().getRepair(percentage));
                     return true;
                 case "INFINITE_REPAIR":
                     if (!sender.hasPermission("spawners.admin")) break;
@@ -197,12 +202,12 @@ public class SpawnersCmd implements CommandExecutor {
                         return true;
                     }
 
-                    target.getInventory().addItem(Items.getInstance().getPresent());
+                    target.getInventory().addItem(Items.getInstance().getGift(target));
                     return true;
                 case "UPDATE":
                     if (!sender.hasPermission("spawners.admin")) break;
 
-                    SpawnerManager.getInstance().updatePrices(true);
+                    SpawnerManager.updatePrices(true);
                     return true;
             }
         }
@@ -210,7 +215,7 @@ public class SpawnersCmd implements CommandExecutor {
         if (player == null) return true;
 
         Menus.getInstance().openMainMenu(player);
-        player.playSound(player.getLocation(), Sound.ENTITY_HORSE_SADDLE, 0.5f, 10f);
+        player.playSound(player.getLocation(), Sound.HORSE_SADDLE, 0.5f, 10f);
         return false;
     }
 }

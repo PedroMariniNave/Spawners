@@ -1,27 +1,97 @@
 Inventory:
   title: "Spawners"
-  size: 45
+  size: 54
   slots: 11,12,13,14,15,20,21,22,23,24,29,30,31,32,33
   next-page-slot: 26 # só vai aparecer se tiver próxima página
   previous-page-slot: 18 # só vai aparecer se tiver página anterior
   items:
     chicken:
-      type: PLAYER_HEAD
-      owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTYzODQ2OWE1OTljZWVmNzIwNzUzNzYwMzI0OGE5YWIxMWZmNTkxZmQzNzhiZWE0NzM1YjM0NmE3ZmFlODkzIn19fQ==
-      name: '&7Spawner &8- &6Galinha &7[&fx?&7]'
-      lore:
-        - '&7Preço: &e{price}'
-        - ''
-        - '&7Abaixo estão as informações'
-        - '&7da cotação dos drops!'
-        - ''
-        - ' &8▶ &7Valor atual: &e{drops_now}'
-        - ' &8▶ &7Valor &f24 horas &7atrás: &e{drops_previous}'
-        - ' &8▶ &7Estatística: {statistics}'
-        - ''
-        - '&7Próxima cotação em:'
-        - ''
-        - ' &8▶ &f{update}'
-        - ''
-        - '&7Clique para escolher a quantia!'
       price: 50000000
+      locked:
+        type: SKULL_ITEM
+        owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2VkMWFiYTczZjYzOWY0YmM0MmJkNDgxOTZjNzE1MTk3YmUyNzEyYzNiOTYyYzk3ZWJmOWU5ZWQ4ZWZhMDI1In19fQ==
+        name: '&7Spawner &8- &cGalinha &7[&fx?&7]'
+        lore:
+          - '&7Preço: {price}'
+          - ''
+          - '&7Abaixo estão as informações'
+          - '&7da cotação dos drops!'
+          - ''
+          - ' &8▶ &7Valor atual: &e{drops_now}'
+          - ' &8▶ &7Valor &f24 horas &7atrás: &e{drops_previous}'
+          - ' &8▶ &7Estatística: {statistics}'
+          - ''
+          - '&7Próxima cotação em:'
+          - ''
+          - ' &8▶ &f{update}'
+          - ''
+          - '&cNecessário o rank 2 para desbloquear!'
+      unlocked:
+        type: SKULL_ITEM
+        owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTYzODQ2OWE1OTljZWVmNzIwNzUzNzYwMzI0OGE5YWIxMWZmNTkxZmQzNzhiZWE0NzM1YjM0NmE3ZmFlODkzIn19fQ==
+        name: '&7Spawner &8- &6Galinha &7[&fx?&7]'
+        lore:
+          - '&7Preço: {price}'
+          - ''
+          - '&7Abaixo estão as informações'
+          - '&7da cotação dos drops!'
+          - ''
+          - ' &8▶ &7Valor atual: &e{drops_now}'
+          - ' &8▶ &7Valor &f24 horas &7atrás: &e{drops_previous}'
+          - ' &8▶ &7Estatística: {statistics}'
+          - ''
+          - '&7Próxima cotação em:'
+          - ''
+          - ' &8▶ &f{update}'
+          - ''
+          - '&7Clique para escolher a quantia!'
+
+Buy-Energy:
+  slot: 48
+  default-price: 100000
+  type: SKULL_ITEM
+  owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjMzODQ0ZjAzYzkyZDgyNTAzYzljZDU2N2E1MWZkYTQ3NDA0ZmE1M2YyMTZmYWQ0NzNmMTZhYzgzYTk3MzE0ZiJ9fX0=
+  name: '&6Energia &7[&f+??&6&l⚡&7]'
+  lore:
+    - '&7Preço: &f???'
+    - ''
+    - '&7Energia é usada para recarregar'
+    - '&7todos os tipos de spawners!'
+    - ''
+    - '&7Com &f1 &7Watt você consegue'
+    - '&7recarregar &f10 &7spawners!'
+    - ''
+    - '&7Clique para escolher como deseja pagar!'
+
+Buy-Pickaxe:
+  slot: 49
+  default-price: 100000000
+  type: DIAMOND_PICKAXE
+  glow: true
+  hide-attributes: true
+  name: '&6Toque Suave ∞'
+  lore:
+    - '&7Preço: &f???'
+    - ''
+    - '&7Essa picareta possui suavidade infinita,'
+    - '&7garantindo que nenhum &fspawner &7seja'
+    - '&7destruído ao remover!'
+    - ''
+    - '&7Clique para escolher como deseja pagar!'
+
+Buy-Repair:
+  slot: 50
+  default-price: 10000
+  type: SKULL_ITEM
+  owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTk2NTM1ZmJiZTEyYzM3ZTk4NTFjOWY3Mjc4YzJmYzZmZDVmN2Y0MWFmZTEzYzgyMzE1YjhmOWI5NDkwZGY4In19fQ==
+  name: '&6Reparador de Spawners &7[&f+??%&7]'
+  lore:
+    - '&7Preço: &f???'
+    - ''
+    - '&7Spawners requerem uma boa manutenção'
+    - '&7para funcionarem corretamente!'
+    - ''
+    - '&7Use esse item para reparar'
+    - '&7seus spawners!'
+    - ''
+    - '&7Clique para escolher como deseja pagar!'

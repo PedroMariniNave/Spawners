@@ -5,15 +5,15 @@ import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
 import com.zpedroo.voltzspawners.VoltzSpawners;
 import com.zpedroo.voltzspawners.utils.config.Settings;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class SpawnerHologram {
+
+    private PlacedSpawner spawner;
 
     private String[] hologramLines;
     private TextLine[] textLines;
@@ -21,58 +21,79 @@ public class SpawnerHologram {
 
     private Hologram hologram;
 
-    public SpawnerHologram(PlayerSpawner spawner) {
+    public SpawnerHologram(PlacedSpawner spawner) {
+        this.spawner = spawner;
         this.hologramLines = Settings.SPAWNER_HOLOGRAM;
-        Bukkit.getScheduler().runTaskLater(VoltzSpawners.get(), () -> update(spawner), 0L);
+        this.updateHologramAndItem();
     }
 
-    public void update(PlayerSpawner spawner) {
-        spawner.getLocation().getBlock().setType(spawner.getSpawner().getBlock());
+    public void updateHologramAndItem() {
+        if (spawner.isDeleted()) return;
 
-        if (hologram != null && hologram.isDeleted()) return;
-
-        if (hologram == null) {
-            hologram = HologramsAPI.createHologram(VoltzSpawners.get(), spawner.getLocation().clone().add(0.5D, 3.95, 0.5D));
-            textLines = new TextLine[hologramLines.length];
-
-            for (int i = 0; i < hologramLines.length; i++) {
-                textLines[i] = hologram.insertTextLine(i, spawner.replace(hologramLines[i]));
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                updateBlock();
+                updateHologram();
+                spawnItem();
             }
+        }.runTaskLater(VoltzSpawners.get(), 0L);
+    }
 
-            hologram.getVisibilityManager().setVisibleByDefault(false);
+    public void removeHologramAndItem() {
+        removeHologram();
+        removeItem();
+    }
 
-            for (Entity nearEntity : spawner.getLocation().getWorld().getNearbyEntities(spawner.getLocation().clone().add(0.5D, 0D, 0.5D), 1D, 1D, 1D)) {
-                if (nearEntity.hasMetadata("Spawner Item")) nearEntity.remove();
-            }
+    public void spawnHologram() {
+        if (spawner.isDeleted()) return;
+        if (hologram != null && !hologram.isDeleted()) return;
 
-            displayItem = spawner.getLocation().getWorld().dropItem(spawner.getLocation().clone().add(0.5D, 1D, 0.5D), spawner.getSpawner().getDisplayItem());
-            displayItem.setVelocity(new Vector(0, 0.1, 0));
-            displayItem.setPickupDelay(Integer.MAX_VALUE);
-            displayItem.setMetadata("Spawner Item", new FixedMetadataValue(VoltzSpawners.get(), true));
-        } else {
-            for (int i = 0; i < hologramLines.length; i++) {
-                this.textLines[i].setText(spawner.replace(hologramLines[i]));
-            }
+        hologram = HologramsAPI.createHologram(VoltzSpawners.get(), spawner.getLocation().clone().add(0.5D, 3.95, 0.5D));
+        textLines = new TextLine[hologramLines.length];
+
+        for (int i = 0; i < hologramLines.length; i++) {
+            textLines[i] = hologram.insertTextLine(i, spawner.replace(hologramLines[i]));
         }
     }
 
-    public void showTo(Player player) {
-        if (hologram == null) return;
+    public void removeHologram() {
+        if (hologram == null || hologram.isDeleted()) return;
 
-        this.hologram.getVisibilityManager().showTo(player);
+        hologram.delete();
+        hologram = null;
     }
 
-    public void hideTo(Player player) {
-        if (hologram == null) return;
+    private void updateHologram() {
+        if (spawner.isDeleted()) return;
+        if (hologram == null || hologram.isDeleted()) return;
 
-        this.hologram.getVisibilityManager().hideTo(player);
+        for (int i = 0; i < hologramLines.length; i++) {
+            textLines[i].setText(spawner.replace(hologramLines[i]));
+        }
     }
 
-    public void remove() {
-        if (hologram == null) return;
+    private void spawnItem() {
+        if (spawner.isDeleted()) return;
+        if (displayItem != null && !displayItem.isDead()) return;
 
-        this.hologram.delete();
-        this.displayItem.remove();
-        this.hologram = null;
+        displayItem = spawner.getLocation().getWorld().dropItem(spawner.getLocation().clone().add(0.5D, 1D, 0.5D), spawner.getSpawner().getDisplayItem());
+        displayItem.setVelocity(new Vector(0, 0.1, 0));
+        displayItem.setPickupDelay(Integer.MAX_VALUE);
+        displayItem.setMetadata("***", new FixedMetadataValue(VoltzSpawners.get(), true));
+        displayItem.setCustomNameVisible(false);
+    }
+
+    private void removeItem() {
+        if (displayItem == null) return;
+
+        displayItem.remove();
+        displayItem = null;
+    }
+
+    private void updateBlock() {
+        if (spawner.getLocation().getBlock().getType().equals(spawner.getSpawner().getBlock())) return;
+
+        spawner.getLocation().getBlock().setType(spawner.getSpawner().getBlock());
     }
 }

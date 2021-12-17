@@ -16,6 +16,6 @@ public class QuotationTask extends BukkitRunnable {
     public void run() {
         if (System.currentTimeMillis() < NEXT_UPDATE) return;
 
-        SpawnerManager.getInstance().updatePrices(false);
+        SpawnerManager.updatePrices(false);
     }
 }

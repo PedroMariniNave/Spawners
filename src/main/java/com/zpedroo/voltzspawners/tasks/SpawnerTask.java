@@ -1,66 +1,59 @@
 package com.zpedroo.voltzspawners.tasks;
 
-import com.zpedroo.voltzspawners.VoltzSpawners;
 import com.zpedroo.voltzspawners.managers.DataManager;
 import com.zpedroo.voltzspawners.managers.EntityManager;
-import com.zpedroo.voltzspawners.utils.config.Settings;
 import org.bukkit.Sound;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import xyz.xenondevs.particle.ParticleEffect;
 
 import java.math.BigInteger;
-import java.util.HashSet;
 import java.util.Random;
+
+import static com.zpedroo.voltzspawners.utils.config.Settings.*;
 
 public class SpawnerTask extends BukkitRunnable {
 
-    public SpawnerTask(VoltzSpawners voltzSpawners) {
-        this.runTaskTimerAsynchronously(voltzSpawners, 20 * 30L, Settings.SPAWNER_UPDATE);
+    public SpawnerTask(Plugin plugin) {
+        this.runTaskTimer(plugin, SPAWNER_UPDATE, SPAWNER_UPDATE);
     }
 
     @Override
     public void run() {
-        new HashSet<>(DataManager.getInstance().getCache().getPlayerSpawners().values()).forEach(spawner -> {
-            if (spawner == null) return;
-            if (!spawner.isEnabled()) {
-                if (!spawner.hasInfiniteEnergy() && spawner.getEnergy().signum() <= 0) return;
-                if (!Settings.ALWAYS_ENABLED_WORLDS.contains(spawner.getLocation().getWorld().getName())) return;
-
-                spawner.switchStatus();
-            }
-            if (!spawner.getLocation().getChunk().isLoaded()) return;
-
-            int delay = spawner.getDelay() - Settings.SPAWNER_UPDATE;
-            spawner.setDelay(delay);
+        DataManager.getInstance().getCache().getPlacedSpawners().values().stream().filter(placedSpawner ->
+            placedSpawner != null && placedSpawner.isEnabled() &&
+        placedSpawner.getLocation().getWorld().getChunkAt(placedSpawner.getLocation().getBlock()).isLoaded()).forEach(spawner -> {
+            int delay = spawner.getSpawnDelay() - SPAWNER_UPDATE;
+            spawner.setSpawnDelay(delay);
 
             if (delay >= 0) return;
 
             BigInteger amount = null;
 
-            if (spawner.getEnergy().compareTo(spawner.getStack()) >= 0) {
+            if (spawner.hasInfiniteEnergy() || spawner.getEnergy().compareTo(spawner.getStack()) >= 0) {
                 amount = spawner.getStack();
             } else {
-                amount = spawner.getStack().subtract(spawner.getEnergy());
+                amount = spawner.getSpawner().getDropsAmount().multiply(spawner.getEnergy()).multiply(BigInteger.TEN);
             }
 
             if (!spawner.hasInfiniteIntegrity()) {
-                if (spawner.getIntegrity() <= 70) { // low efficiency
-                    Integer toDivide = (100 - spawner.getIntegrity()) / 10;
+                if (spawner.getIntegrity().intValue() <= 70) { // low efficiency
+                    int toDivide = (100 - spawner.getIntegrity().intValue()) / 10;
 
                     if (toDivide >= 2) amount = amount.divide(BigInteger.valueOf(toDivide));
                 }
 
                 Random random = new Random();
 
-                if (random.nextInt(100 + 1) <= 25) {
-                    spawner.setIntegrity(spawner.getIntegrity() - 1);
+                if (random.nextInt(100 + 1) <= 55) {
+                    spawner.setIntegrity(spawner.getIntegrity().subtract(BigInteger.ONE));
                 }
 
-                if (spawner.getIntegrity() <= 60) { // 60% of integrity = chance of stop machine and lost all drops
+                if (spawner.getIntegrity().intValue() <= 60) { // 60% of integrity = chance of stop machine and lost all drops
                     if (random.nextInt(100 + 1) <= 5) {
                         spawner.switchStatus();
                         spawner.setDrops(BigInteger.ZERO);
-                        spawner.getLocation().getWorld().playSound(spawner.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 10f, 10f);
+                        spawner.getLocation().getWorld().playSound(spawner.getLocation(), Sound.EXPLODE, 10f, 10f);
 
                         ParticleEffect.EXPLOSION_HUGE.display(spawner.getLocation().clone().add(0.5D, 0D, 0.5D));
                     }
@@ -70,10 +63,11 @@ public class SpawnerTask extends BukkitRunnable {
             if (amount.signum() <= 0) amount = BigInteger.ONE;
 
             final BigInteger finalAmount = amount;
-            VoltzSpawners.get().getServer().getScheduler().runTaskLater(VoltzSpawners.get(), () -> EntityManager.spawn(spawner, finalAmount), 0L);
+            EntityManager.spawn(spawner, finalAmount);
+            // VoltzSpawners.get().getServer().getScheduler().runTaskLater(VoltzSpawners.get(), () -> EntityManager.spawn(spawner, finalAmount), 0L);
 
             if (!spawner.hasInfiniteEnergy()) {
-                BigInteger energy = amount.divide(BigInteger.TEN); // 10 stacks = 1 energy
+                BigInteger energy = spawner.getStack().divide(BigInteger.TEN); // 10 stacks = 1L
                 spawner.removeEnergy(energy.signum() <= 0 ? BigInteger.ONE : energy);
 
                 if (spawner.getEnergy().signum() <= 0) {
@@ -82,7 +76,7 @@ public class SpawnerTask extends BukkitRunnable {
             }
 
             spawner.updateDelay();
-            spawner.getLocation().getWorld().playSound(spawner.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 0.5f);
+            spawner.getLocation().getWorld().playSound(spawner.getLocation(), Sound.ENDERMAN_TELEPORT, 0.5f, 0.5f);
         });
     }
 }

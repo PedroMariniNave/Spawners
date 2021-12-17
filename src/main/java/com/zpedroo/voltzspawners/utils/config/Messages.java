@@ -8,6 +8,8 @@ import java.util.List;
 
 public class Messages {
 
+    public static final String ONLY_ONE_SPAWNER = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.only-one-spawner"));
+
     public static final String ZERO_SPAWNERS_ENERGY = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.zero-spawners-energy"));
 
     public static final String ZERO_SPAWNERS_REPAIR = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.zero-spawners-repair"));
@@ -24,6 +26,8 @@ public class Messages {
 
     public static final String INCORRECT_PICKAXE = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.incorrect-pickaxe"));
 
+    public static final String INCORRECT_GIFT_OWNER = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.incorrect-gift-owner"));
+
     public static final String ONLY_OWNER = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.only-owner"));
 
     public static final String OFFLINE_PLAYER = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.offline-player"));
@@ -38,11 +42,11 @@ public class Messages {
 
     public static final String SPAWNER_PERMISSION = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.spawner-permission"));
 
-    public static final String BUY_ALL_ZERO = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.buy-all-zero"));
-
-    public static final String INSUFFICIENT_MONEY = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.insufficient-money"));
+    public static final String INSUFFICIENT_CURRENCY = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.insufficient-currency"));
 
     public static final String NEAR_SPAWNER = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.near-spawner"));
+
+    public static final String BONUS = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.bonus"));
 
     public static final String PUBLIC = getColored(FileUtils.get().getString(FileUtils.Files.CONFIG, "Messages.public"));
 

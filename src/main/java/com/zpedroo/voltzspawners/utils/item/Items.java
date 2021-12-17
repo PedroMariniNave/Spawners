@@ -5,6 +5,7 @@ import com.zpedroo.voltzspawners.utils.builder.ItemBuilder;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import de.tr7zw.nbtapi.NBTItem;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -22,7 +23,7 @@ public class Items {
     private ItemStack infiniteRepair;
     private ItemStack pickaxe;
     private ItemStack repair;
-    private ItemStack present;
+    private ItemStack gift;
 
     public Items() {
         instance = this;
@@ -31,7 +32,7 @@ public class Items {
         this.infiniteRepair = ItemBuilder.build(FileUtils.get().getFile(FileUtils.Files.CONFIG).get(), "Infinite-Repair").build();
         this.pickaxe = ItemBuilder.build(FileUtils.get().getFile(FileUtils.Files.CONFIG).get(), "Pickaxe").build();
         this.repair = ItemBuilder.build(FileUtils.get().getFile(FileUtils.Files.CONFIG).get(), "Repair").build();
-        this.present = ItemBuilder.build(FileUtils.get().getFile(FileUtils.Files.CONFIG).get(), "Gift").build();
+        this.gift = ItemBuilder.build(FileUtils.get().getFile(FileUtils.Files.CONFIG).get(), "Gift").build();
     }
 
     public ItemStack getEnergy(BigInteger amount) {
@@ -92,9 +93,9 @@ public class Items {
         return nbt.getItem();
     }
 
-    public ItemStack getRepair(Integer percentage) {
+    public ItemStack getRepair(BigInteger percentage) {
         NBTItem nbt = new NBTItem(repair.clone());
-        nbt.setInteger("SpawnersRepair", percentage);
+        nbt.setString("SpawnersRepair", percentage.toString());
 
         ItemStack item = nbt.getItem();
 
@@ -106,7 +107,7 @@ public class Items {
             if (displayName != null) meta.setDisplayName(StringUtils.replaceEach(displayName, new String[] {
                     "{percentage}"
             }, new String[] {
-                    NumberFormatter.getInstance().formatDecimal(percentage.doubleValue())
+                    NumberFormatter.getInstance().format(percentage)
             }));
 
             if (lore != null) {
@@ -116,7 +117,7 @@ public class Items {
                     newLore.add(StringUtils.replaceEach(str, new String[] {
                             "{percentage}"
                     }, new String[] {
-                            NumberFormatter.getInstance().formatDecimal(percentage.doubleValue())
+                            NumberFormatter.getInstance().format(percentage)
                     }));
                 }
 
@@ -129,9 +130,10 @@ public class Items {
         return item;
     }
 
-    public ItemStack getPresent() {
-        NBTItem nbt = new NBTItem(present.clone());
+    public ItemStack getGift(Player player) {
+        NBTItem nbt = new NBTItem(gift.clone());
         nbt.addCompound("SpawnersGift");
+        nbt.setString("GiftOwner", player.getUniqueId().toString());
 
         return nbt.getItem();
     }

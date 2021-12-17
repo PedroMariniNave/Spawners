@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="Spawners">
-    <output-path>$USER_HOME$/Desktop/Rankup 3.0 Testes/plugins</output-path>
+    <output-path>$USER_HOME$/Desktop/Testar/plugins</output-path>
     <root id="archive" name="Spawners.jar">
       <element id="module-output" name="Spawners [Rankup Overpower]" />
       <element id="extracted-dir" path="$USER_HOME$/Downloads/item-nbt-api-plugin-2.8.0.jar" path-in-jar="/" />

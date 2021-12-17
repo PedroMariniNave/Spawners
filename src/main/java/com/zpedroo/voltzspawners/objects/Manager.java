@@ -1,6 +1,6 @@
 package com.zpedroo.voltzspawners.objects;
 
-import com.zpedroo.voltzspawners.utils.enums.Permission;
+import com.zpedroo.voltzspawners.enums.Permission;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,11 +23,11 @@ public class Manager {
         return permissions;
     }
 
-    public Boolean can(Permission permission) {
-        return getPermissions().contains(permission);
+    public boolean hasPermission(Permission permission) {
+        return permissions.contains(permission);
     }
 
-    public void set(Permission permission, Boolean status) {
+    public void setPermission(Permission permission, boolean status) {
         if (status) {
             getPermissions().add(permission);
         } else {

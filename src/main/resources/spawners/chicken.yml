@@ -4,8 +4,11 @@ Spawner-Settings:
   entity-name: '&6Galinha &7[&fx{stack}&7]'
   type-translated: Galinha
   display-name: '&fSpawner de Galinha'
+  permission: spawner.chicken
   drops:
-    price: 0
+    min: 5000
+    max: 25000
+    now: 0
     previous: 0
     delay: 10
     amount: 10000
@@ -13,7 +16,7 @@ Spawner-Settings:
   commands:
     - money give {player} {amount}
   item:
-    type: PLAYER_HEAD
+    type: SKULL_ITEM
     owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTYzODQ2OWE1OTljZWVmNzIwNzUzNzYwMzI0OGE5YWIxMWZmNTkxZmQzNzhiZWE0NzM1YjM0NmE3ZmFlODkzIn19fQ==
     name: '&7Spawner &8- &6Galinha &7[&fx{amount}&7]'
     lore:
@@ -26,7 +29,7 @@ Spawner-Menu:
   size: 36
   items:
     '1':
-      type: PLAYER_HEAD
+      type: SKULL_ITEM
       owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTYzODQ2OWE1OTljZWVmNzIwNzUzNzYwMzI0OGE5YWIxMWZmNTkxZmQzNzhiZWE0NzM1YjM0NmE3ZmFlODkzIn19fQ==
       name: '&fSpawner de Galinha'
       lore:
@@ -38,7 +41,7 @@ Spawner-Menu:
       slot: 3
     '2':
       action: SWITCH_STATUS
-      type: PLAYER_HEAD
+      type: SKULL_ITEM
       owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmE4OTc4Y2NiZjU3NmY0NDZlMjFjNTFkM2U4MGZjN2Y4NTY2ZWI3MjY1Y2M0M2M0YWQ3MWNmYjc4YzE2NTI1NyJ9fX0=
       name: '&aAlternar Status'
       lore:
@@ -51,7 +54,7 @@ Spawner-Menu:
       slot: 5
     '3':
       action: SELL_DROPS
-      type: PLAYER_HEAD
+      type: SKULL_ITEM
       owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmNjN2Y2NDQxYmQ3MWZjOTc0ZTk5NzdiY2IyMmVmYmM0YjYxMjc3YzQ5ZWZiMjQyM2FiOTE1NDg5NWJlIn19fQ==
       name: '&aVender Drops'
       lore:
@@ -68,7 +71,7 @@ Spawner-Menu:
       slot: 20
     '4':
       action: MANAGERS
-      type: PLAYER_HEAD
+      type: SKULL_ITEM
       owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDMwOTNhNWI3NzY0MmQ0MDkyMTEyZjQ2ZWE2ODE0MGZiNWFlMDRiYmQyMzFjZGExMDY2YTA0YzE4Yjg5Yzk0ZSJ9fX0=
       name: '&aGerenciar Amigos'
       lore:
@@ -78,7 +81,7 @@ Spawner-Menu:
       slot: 21
     '5':
       action: REMOVE_STACK
-      type: PLAYER_HEAD
+      type: SKULL_ITEM
       owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2VkMWFiYTczZjYzOWY0YmM0MmJkNDgxOTZjNzE1MTk3YmUyNzEyYzNiOTYyYzk3ZWJmOWU5ZWQ4ZWZhMDI1In19fQ==
       name: '&aRemover Stack'
       lore:
@@ -90,7 +93,7 @@ Spawner-Menu:
       slot: 23
     '6':
       action: SWITCH_PRIVACY
-      type: PLAYER_HEAD
+      type: SKULL_ITEM
       owner: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzk5YWQ3YTA0MzE2OTI5OTRiNmM0MTJjN2VhZmI5ZTBmYzQ5OTc1MjQwYjczYTI3ZDI0ZWQ3OTcwMzVmYjg5NCJ9fX0=
       name: '&aSpawner Público'
       lore:

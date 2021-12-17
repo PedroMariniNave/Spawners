@@ -4,8 +4,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.zpedroo.voltzspawners.commands.SpawnersCmd;
 import com.zpedroo.voltzspawners.hooks.ProtocolLibHook;
-import com.zpedroo.voltzspawners.hooks.VaultHook;
-import com.zpedroo.voltzspawners.hooks.WorldGuardHook;
 import com.zpedroo.voltzspawners.listeners.EntityListeners;
 import com.zpedroo.voltzspawners.listeners.PlayerChatListener;
 import com.zpedroo.voltzspawners.listeners.PlayerGeneralListeners;
@@ -16,7 +14,6 @@ import com.zpedroo.voltzspawners.mysql.DBConnection;
 import com.zpedroo.voltzspawners.tasks.QuotationTask;
 import com.zpedroo.voltzspawners.tasks.SaveTask;
 import com.zpedroo.voltzspawners.tasks.SpawnerTask;
-import com.zpedroo.voltzspawners.utils.EntityHider;
 import com.zpedroo.voltzspawners.utils.FileUtils;
 import com.zpedroo.voltzspawners.utils.formatter.NumberFormatter;
 import com.zpedroo.voltzspawners.utils.formatter.TimeFormatter;
@@ -42,18 +39,14 @@ public class VoltzSpawners extends JavaPlugin {
             return;
         }
 
+        new NumberFormatter(getConfig());
         new DBConnection(getConfig());
-        new SpawnerManager();
-        new VaultHook();
-        new WorldGuardHook();
         new SpawnerTask(this);
         new SaveTask(this);
         new QuotationTask(this);
         new Menus();
         new Items();
-        new NumberFormatter(getConfig());
         new TimeFormatter();
-        new EntityHider(this, EntityHider.Policy.BLACKLIST);
 
         ProtocolLibrary.getProtocolManager().addPacketListener(new ProtocolLibHook(this, PacketType.Play.Client.LOOK));
 
@@ -65,8 +58,8 @@ public class VoltzSpawners extends JavaPlugin {
         if (!isMySQLEnabled(getConfig())) return;
 
         try {
+            SpawnerManager.clearAll();
             DataManager.getInstance().saveAll();
-            SpawnerManager.getInstance().clearAll();
             DBConnection.getInstance().closeConnection();
         } catch (Exception ex) {
             getLogger().log(Level.SEVERE, "An error occurred while trying to save data!");
@@ -85,7 +78,7 @@ public class VoltzSpawners extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnerListeners(), this);
     }
 
-    private Boolean isMySQLEnabled(FileConfiguration file) {
+    private boolean isMySQLEnabled(FileConfiguration file) {
         if (!file.contains("MySQL.enabled")) return false;
 
         return file.getBoolean("MySQL.enabled");
